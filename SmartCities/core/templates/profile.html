@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile | SmartCity Insight</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bitter:wght@400;600;700&family=Work+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+</head>
+<body class="profile-page">
+    {% include 'navbar.html' %}
+
+    <div class="profile-container">
+        <header class="page-header">
+            <a href="{% url 'dashboard' %}" class="back-link">← Back to Dashboard</a>
+            <h1 class="page-title">My Profile</h1>
+        </header>
+
+        <div class="profile-layout">
+            <!-- User Info Section -->
+            <aside class="profile-sidebar">
+                <div class="profile-card">
+                    <div class="profile-avatar">
+                        <div class="avatar-circle">{{ user.name|first|upper }}</div>
+                    </div>
+                    <div class="profile-info">
+                        <h2 class="profile-name">{{ user.name }}</h2>
+                        <p class="profile-email">{{ user.email }}</p>
+                        <span class="profile-role-badge {{ user.role|lower }}">{{ user.role }}</span>
+                    </div>
+                </div>
+
+                <div class="profile-details">
+                    <h3 class="details-title">Account Details</h3>
+                    <div class="detail-item">
+                        <span class="detail-label">Mobile:</span>
+                        <span class="detail-value">{{ user.mobile }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Age:</span>
+                        <span class="detail-value">{{ user.age }} years</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Locality:</span>
+                        <span class="detail-value">{{ user.locality }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Member Since:</span>
+                        <span class="detail-value">{{ user.date_joined|date:"d M Y" }}</span>
+                    </div>
+                </div>
+
+                <div class="profile-stats">
+                    <h3 class="stats-title">My Impact</h3>
+                    <div class="stat-row">
+                        <span class="stat-icon">📝</span>
+                        <div class="stat-info">
+                            <div class="stat-number">{{ user_total_complaints }}</div>
+                            <div class="stat-label">Total Complaints</div>
+                        </div>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-icon">✅</span>
+                        <div class="stat-info">
+                            <div class="stat-number">{{ user_resolved_complaints }}</div>
+                            <div class="stat-label">Resolved</div>
+                        </div>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-icon">⏳</span>
+                        <div class="stat-info">
+                            <div class="stat-number">{{ user_pending_complaints }}</div>
+                            <div class="stat-label">Pending</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-actions">
+                    <a href="#" class="btn btn-secondary btn-block">Edit Profile</a>
+                    <a href="#" class="btn btn-outline btn-block">Change Password</a>
+                </div>
+            </aside>
+
+            <!-- User Complaints Section -->
+            <main class="profile-main">
+                <div class="complaints-header">
+                    <h2 class="section-title">My Complaints</h2>
+                    <div class="view-toggle">
+                        <button class="toggle-btn active" onclick="toggleView('cards')">
+                            <span>📇</span> Cards
+                        </button>
+                        <button class="toggle-btn" onclick="toggleView('table')">
+                            <span>📊</span> Table
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Cards View -->
+                <div id="cardsView" class="complaints-cards">
+                    {% for complaint in user_complaints %}
+                    <div class="user-complaint-card">
+                        <div class="card-header">
+                            <div class="card-meta">
+                                <span class="complaint-id">#{{ complaint.id }}</span>
+                                <span class="issue-type-badge {{ complaint.issue_type }}">
+                                    {% if complaint.issue_type == 'garbage' %}🗑️{% elif complaint.issue_type == 'pothole' %}🛣️{% else %}💡{% endif %}
+                                    {{ complaint.issue_type|title }}
+                                </span>
+                            </div>
+                            <span class="status-badge {{ complaint.status }}">{{ complaint.status|title }}</span>
+                        </div>
+
+                        <div class="card-body">
+                            <p class="card-description">{{ complaint.description }}</p>
+                            
+                            <div class="card-location">
+                                <span class="location-icon">📍</span>
+                                {{ complaint.landmark|default:"Location coordinates attached" }}
+                            </div>
+
+                            <div class="card-images">
+                                <div class="image-thumb">
+                                    <img src="{{ complaint.before_image.url }}" alt="Before">
+                                    <span class="image-label">Before</span>
+                                </div>
+                                {% if complaint.status == 'resolved' and complaint.after_image %}
+                                <div class="image-thumb">
+                                    <img src="{{ complaint.after_image.url }}" alt="After">
+                                    <span class="image-label">After</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="card-footer">
+                            <div class="card-timeline">
+                                <div class="timeline-entry">
+                                    <span class="timeline-icon">🕐</span>
+                                    <span class="timeline-text">Created {{ complaint.created_at|timesince }} ago</span>
+                                </div>
+                                {% if complaint.status == 'resolved' %}
+                                <div class="timeline-entry resolved">
+                                    <span class="timeline-icon">✓</span>
+                                    <span class="timeline-text">Resolved {{ complaint.resolved_at|timesince }} ago</span>
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="card-sla">
+                                {% if complaint.sla_status == 'breached' %}
+                                <span class="sla-indicator breached">
+                                    <span class="sla-icon">⚠️</span>
+                                    SLA Breached
+                                </span>
+                                {% else %}
+                                <span class="sla-indicator normal">
+                                    <span class="sla-icon">✓</span>
+                                    Within SLA
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        {% if complaint.status == 'resolved' %}
+                        <div class="resolution-info">
+                            <div class="resolution-badge">
+                                <span class="resolution-icon">🎯</span>
+                                <span>Resolved in {{ complaint.resolution_duration }} days</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% empty %}
+                    <div class="empty-state">
+                        <div class="empty-icon">📝</div>
+                        <h3>No Complaints Yet</h3>
+                        <p>You haven't registered any complaints. Start contributing to your community!</p>
+                        <a href="{% url 'register_complaint' %}" class="btn btn-primary">Register First Complaint</a>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Table View -->
+                <div id="tableView" class="complaints-table" style="display: none;">
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                    <th>Status</th>
+                                    <th>SLA</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for complaint in user_complaints %}
+                                <tr>
+                                    <td><strong>#{{ complaint.id }}</strong></td>
+                                    <td>
+                                        <span class="table-badge {{ complaint.issue_type }}">
+                                            {{ complaint.issue_type|title }}
+                                        </span>
+                                    </td>
+                                    <td class="description-cell">{{ complaint.description|truncatewords:10 }}</td>
+                                    <td>
+                                        <span class="status-badge {{ complaint.status }}">
+                                            {{ complaint.status|title }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if complaint.sla_status == 'breached' %}
+                                        <span class="sla-indicator breached">Breached</span>
+                                        {% else %}
+                                        <span class="sla-indicator normal">Normal</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ complaint.created_at|date:"d M Y" }}</td>
+                                    <td>
+                                        <a href="complaint-detail.html?id={{ complaint.id }}" class="btn btn-outline btn-small">
+                                            View
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="empty-cell">No complaints to display</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        function toggleView(view) {
+            const cardsView = document.getElementById('cardsView');
+            const tableView = document.getElementById('tableView');
+            const buttons = document.querySelectorAll('.toggle-btn');
+
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            if (view === 'cards') {
+                cardsView.style.display = 'grid';
+                tableView.style.display = 'none';
+                buttons[0].classList.add('active');
+            } else {
+                cardsView.style.display = 'none';
+                tableView.style.display = 'block';
+                buttons[1].classList.add('active');
+            }
+        }
+    </script>
+
+    <div class="background-pattern"></div>
+</body>
+</html>

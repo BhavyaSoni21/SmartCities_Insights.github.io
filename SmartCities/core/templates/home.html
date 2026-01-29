@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartCity Insight | Sustainable Urban Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bitter:wght@400;600;700&family=Work+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+</head>
+<body class="public-page">
+    <div class="public-container">
+        <header class="public-header">
+            <div class="header-badge">
+                <div class="sdg-icon">11</div>
+                <span class="badge-text">SDG 11 Initiative</span>
+            </div>
+        </header>
+
+        <main class="hero-section">
+            <div class="hero-content">
+                <h1 class="main-title">
+                    <span class="title-line">SmartCity</span>
+                    <span class="title-line highlight">Insight</span>
+                </h1>
+                
+                <p class="tagline">Empowering Citizens. Building Sustainable Communities.</p>
+                
+                <div class="description-box">
+                    <p class="description">
+                        A citizen-centric platform for tracking and resolving urban issues through 
+                        transparent, accountable governance. Join thousands of residents making our 
+                        cities more livable, safe, and sustainable.
+                    </p>
+                </div>
+
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">📍</div>
+                        <h3>Track Issues</h3>
+                        <p>Report potholes, garbage, broken streetlights in your locality</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">👥</div>
+                        <h3>Community Voice</h3>
+                        <p>Participate in building better neighborhoods together</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">✓</div>
+                        <h3>Real Accountability</h3>
+                        <p>Monitor resolution status and SLA compliance in real-time</p>
+                    </div>
+                </div>
+
+                <div class="cta-section">
+                    <a href="{% url 'login' %}" class="btn btn-primary">Login / Register</a>
+                    <p class="cta-note">Start making a difference in your community today</p>
+                </div>
+            </div>
+
+            <div class="stats-banner">
+                <div class="stat-item">
+                    <div class="stat-number">12,847</div>
+                    <div class="stat-label">Issues Resolved</div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <div class="stat-number">8,432</div>
+                    <div class="stat-label">Active Citizens</div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <div class="stat-number">156</div>
+                    <div class="stat-label">Localities Covered</div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="public-footer">
+            <p>Aligned with UN Sustainable Development Goal 11: Sustainable Cities and Communities</p>
+        </footer>
+    </div>
+
+    <div class="background-pattern"></div>
+</body>
+</html>

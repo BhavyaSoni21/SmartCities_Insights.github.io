@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local Complaints | SmartCity Insight</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bitter:wght@400;600;700&family=Work+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+</head>
+<body class="complaints-page">
+    {% include 'navbar.html' %}
+
+    <div class="complaints-container">
+        <header class="page-header">
+            <a href="{% url 'dashboard' %}" class="back-link">← Back to Dashboard</a>
+            <div class="header-content">
+                <div>
+                    <h1 class="page-title">Local Complaints</h1>
+                    <p class="page-subtitle">{{ user.locality }} - All reported issues</p>
+                </div>
+                <a href="{% url 'register_complaint' %}" class="btn btn-primary">
+                    <span class="btn-icon">➕</span>
+                    New Complaint
+                </a>
+            </div>
+        </header>
+
+        <!-- Filters Section -->
+        <section class="filters-section">
+            <div class="filters-container">
+                <div class="filter-group">
+                    <label for="statusFilter">Status</label>
+                    <select id="statusFilter" class="filter-select">
+                        <option value="all">All Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="resolved">Resolved</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="typeFilter">Issue Type</label>
+                    <select id="typeFilter" class="filter-select">
+                        <option value="all">All Types</option>
+                        <option value="garbage">Garbage</option>
+                        <option value="pothole">Pothole</option>
+                        <option value="streetlight">Streetlight</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="slaFilter">SLA Status</label>
+                    <select id="slaFilter" class="filter-select">
+                        <option value="all">All SLA</option>
+                        <option value="normal">Normal</option>
+                        <option value="breached">Breached</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="sortFilter">Sort By</label>
+                    <select id="sortFilter" class="filter-select">
+                        <option value="recent">Most Recent</option>
+                        <option value="oldest">Oldest First</option>
+                        <option value="sla_breach">SLA Breached</option>
+                    </select>
+                </div>
+
+                <button class="btn btn-secondary" onclick="resetFilters()">Reset Filters</button>
+            </div>
+        </section>
+
+        <!-- Complaints List -->
+        <section class="complaints-list">
+            {% for complaint in complaints %}
+            <div class="complaint-card" data-status="{{ complaint.status }}" data-type="{{ complaint.issue_type }}" data-sla="{{ complaint.sla_status }}">
+                <div class="complaint-header">
+                    <div class="complaint-meta">
+                        <span class="complaint-id">#{{ complaint.id }}</span>
+                        <span class="issue-type-badge {{ complaint.issue_type }}">
+                            {% if complaint.issue_type == 'garbage' %}🗑️{% elif complaint.issue_type == 'pothole' %}🛣️{% else %}💡{% endif %}
+                            {{ complaint.issue_type|title }}
+                        </span>
+                        <span class="status-badge {{ complaint.status }}">
+                            {{ complaint.status|title }}
+                        </span>
+                        {% if complaint.sla_status == 'breached' %}
+                        <span class="sla-badge breached">⚠️ SLA Breached</span>
+                        {% else %}
+                        <span class="sla-badge normal">✓ Within SLA</span>
+                        {% endif %}
+                    </div>
+                    <div class="complaint-timestamp">
+                        {{ complaint.created_at|date:"d M Y, H:i" }}
+                    </div>
+                </div>
+
+                <div class="complaint-body">
+                    <div class="complaint-content">
+                        <h3 class="complaint-title">{{ complaint.description|truncatewords:15 }}</h3>
+                        <p class="complaint-description">{{ complaint.description }}</p>
+                        
+                        <div class="complaint-location">
+                            <span class="location-icon">📍</span>
+                            <span>{{ complaint.landmark|default:"Coordinates: "|add:complaint.latitude|add:", "|add:complaint.longitude }}</span>
+                        </div>
+
+                        <div class="complaint-reporter">
+                            <span class="reporter-label">Reported by:</span>
+                            <span class="reporter-name">{{ complaint.user.name }}</span>
+                        </div>
+                    </div>
+
+                    <div class="complaint-images">
+                        <div class="image-container">
+                            <div class="image-label">Before</div>
+                            <img src="{{ complaint.before_image.url }}" alt="Before image" class="complaint-image">
+                        </div>
+                        
+                        {% if complaint.status == 'resolved' and complaint.after_image %}
+                        <div class="image-arrow">→</div>
+                        <div class="image-container">
+                            <div class="image-label">After</div>
+                            <img src="{{ complaint.after_image.url }}" alt="After image" class="complaint-image">
+                        </div>
+                        {% else %}
+                        <div class="image-placeholder">
+                            <div class="placeholder-text">Awaiting Resolution</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="complaint-footer">
+                    <div class="complaint-timeline">
+                        <div class="timeline-item">
+                            <span class="timeline-label">Created:</span>
+                            <span class="timeline-value">{{ complaint.created_at|timesince }} ago</span>
+                        </div>
+                        {% if complaint.status == 'resolved' %}
+                        <div class="timeline-item">
+                            <span class="timeline-label">Resolved:</span>
+                            <span class="timeline-value">{{ complaint.resolved_at|timesince }} ago</span>
+                        </div>
+                        <div class="timeline-item">
+                            <span class="timeline-label">Resolution Time:</span>
+                            <span class="timeline-value">{{ complaint.resolution_duration }} days</span>
+                        </div>
+                        {% else %}
+                        <div class="timeline-item">
+                            <span class="timeline-label">Pending for:</span>
+                            <span class="timeline-value {{ complaint.sla_class }}">{{ complaint.days_pending }} days</span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="complaint-actions">
+                        <a href="complaint-detail.html?id={{ complaint.id }}" class="btn btn-outline btn-small">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            {% empty %}
+            <div class="empty-state">
+                <div class="empty-icon">📭</div>
+                <h2>No Complaints Found</h2>
+                <p>No complaints match your current filters. Try adjusting the filters or register a new complaint.</p>
+                <a href="{% url 'register_complaint' %}" class="btn btn-primary">Register First Complaint</a>
+            </div>
+            {% endfor %}
+        </section>
+
+        <!-- Pagination -->
+        {% if complaints.has_other_pages %}
+        <div class="pagination">
+            {% if complaints.has_previous %}
+            <a href="?page={{ complaints.previous_page_number }}" class="pagination-btn">← Previous</a>
+            {% endif %}
+
+            <div class="pagination-numbers">
+                {% for num in complaints.paginator.page_range %}
+                    {% if num == complaints.number %}
+                    <span class="pagination-number active">{{ num }}</span>
+                    {% else %}
+                    <a href="?page={{ num }}" class="pagination-number">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            {% if complaints.has_next %}
+            <a href="?page={{ complaints.next_page_number }}" class="pagination-btn">Next →</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // Filter functionality
+        function filterComplaints() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const typeFilter = document.getElementById('typeFilter').value;
+            const slaFilter = document.getElementById('slaFilter').value;
+            
+            const cards = document.querySelectorAll('.complaint-card');
+            
+            cards.forEach(card => {
+                const status = card.dataset.status;
+                const type = card.dataset.type;
+                const sla = card.dataset.sla;
+                
+                const matchStatus = statusFilter === 'all' || status === statusFilter;
+                const matchType = typeFilter === 'all' || type === typeFilter;
+                const matchSLA = slaFilter === 'all' || sla === slaFilter;
+                
+                if (matchStatus && matchType && matchSLA) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        function resetFilters() {
+            document.getElementById('statusFilter').value = 'all';
+            document.getElementById('typeFilter').value = 'all';
+            document.getElementById('slaFilter').value = 'all';
+            document.getElementById('sortFilter').value = 'recent';
+            filterComplaints();
+        }
+
+        // Attach event listeners
+        document.getElementById('statusFilter').addEventListener('change', filterComplaints);
+        document.getElementById('typeFilter').addEventListener('change', filterComplaints);
+        document.getElementById('slaFilter').addEventListener('change', filterComplaints);
+    </script>
+
+    <div class="background-pattern"></div>
+</body>
+</html>

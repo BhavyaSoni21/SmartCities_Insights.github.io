@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Complaint | SmartCity Insight</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bitter:wght@400;600;700&family=Work+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body class="complaint-page">
+    {% include 'navbar.html' %}
+
+    {% if user.is_authenticated %}
+    <div class="complaint-container">
+        <header class="page-header">
+            <a href="{% url 'dashboard' %}" class="back-link">← Back to Dashboard</a>
+            <h1 class="page-title">Register New Complaint</h1>
+            <p class="page-subtitle">Help improve {{ user.locality }} by reporting issues</p>
+        </header>
+
+        <div class="complaint-form-wrapper">
+            <form action="{% url 'register_complaint' %}" method="POST" enctype="multipart/form-data" class="complaint-form">
+                {% csrf_token %}
+
+                <div class="form-section">
+                    <h2 class="section-title">Issue Details</h2>
+                    
+                    <div class="form-group">
+                        <label for="issue_type">Issue Type <span class="required">*</span></label>
+                        <select id="issue_type" name="issue_type" required class="form-select">
+                            <option value="">Select issue type</option>
+                            <option value="garbage">🗑️ Garbage / Waste Management</option>
+                            <option value="pothole">🛣️ Pothole / Road Damage</option>
+                            <option value="streetlight">💡 Streetlight / Public Lighting</option>
+                        </select>
+                        <span class="input-hint">Choose the category that best describes your issue</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Description <span class="required">*</span></label>
+                        <textarea 
+                            id="description" 
+                            name="description" 
+                            required 
+                            rows="5"
+                            maxlength="500"
+                            placeholder="Provide a clear description of the issue, including any relevant details like landmarks, severity, or impact on the community..."
+                            class="form-textarea"
+                        ></textarea>
+                        <div class="char-counter">
+                            <span id="charCount">0</span> / 500 characters
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2 class="section-title">Location Information</h2>
+                    
+                    <div class="form-group">
+                        <label for="location">Pinpoint Location <span class="required">*</span></label>
+                        <div id="map" class="location-map"></div>
+                        <input type="hidden" id="latitude" name="latitude" required>
+                        <input type="hidden" id="longitude" name="longitude" required>
+                        <span class="input-hint">Click on the map to mark the exact location of the issue</span>
+                        <div class="location-display">
+                            <strong>Selected:</strong> <span id="locationDisplay">No location selected</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="landmark">Nearby Landmark (Optional)</label>
+                        <input 
+                            type="text" 
+                            id="landmark" 
+                            name="landmark" 
+                            placeholder="e.g., Near City Hospital, Opposite Park Gate"
+                            class="form-input"
+                        >
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2 class="section-title">Upload Evidence</h2>
+                    
+                    <div class="form-group">
+                        <label for="before_image">Before Image <span class="required">*</span></label>
+                        <div class="file-upload-area">
+                            <input 
+                                type="file" 
+                                id="before_image" 
+                                name="before_image" 
+                                accept="image/*"
+                                required
+                                class="file-input"
+                            >
+                            <div class="upload-placeholder">
+                                <div class="upload-icon">📸</div>
+                                <div class="upload-text">
+                                    <p><strong>Click to upload</strong> or drag and drop</p>
+                                    <p class="upload-hint">PNG, JPG, JPEG up to 5MB</p>
+                                </div>
+                            </div>
+                            <div class="image-preview" id="imagePreview"></div>
+                        </div>
+                        <span class="input-hint">Upload a clear photo showing the current state of the issue</span>
+                    </div>
+                </div>
+
+                <div class="info-notice">
+                    <div class="notice-icon">ℹ️</div>
+                    <div class="notice-content">
+                        <strong>Automatic Processing</strong>
+                        <p>Timestamp will be automatically recorded when you submit. Initial status will be set to "Pending" and assigned to the ward authority for your locality.</p>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="history.back()">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-large">
+                        Submit Complaint
+                    </button>
+                </div>
+            </form>
+
+            <aside class="complaint-sidebar">
+                <div class="info-card">
+                    <h3>📋 Complaint Guidelines</h3>
+                    <ul class="guidelines-list">
+                        <li>Provide accurate location information</li>
+                        <li>Upload clear, well-lit photographs</li>
+                        <li>Be specific and factual in descriptions</li>
+                        <li>One issue per complaint for faster resolution</li>
+                    </ul>
+                </div>
+
+                <div class="info-card">
+                    <h3>⏱️ Resolution Timeline</h3>
+                    <div class="timeline-item">
+                        <strong>Garbage Issues:</strong> 24 hours
+                    </div>
+                    <div class="timeline-item">
+                        <strong>Potholes:</strong> 72 hours
+                    </div>
+                    <div class="timeline-item">
+                        <strong>Streetlights:</strong> 48 hours
+                    </div>
+                    <p class="timeline-note">SLA breaches are escalated automatically</p>
+                </div>
+
+                <div class="info-card">
+                    <h3>✓ What Happens Next</h3>
+                    <ol class="process-list">
+                        <li>Your complaint is logged with timestamp</li>
+                        <li>Ward authority receives notification</li>
+                        <li>You can track status in real-time</li>
+                        <li>Resolution team updates with photos</li>
+                        <li>Complaint is marked closed upon resolution</li>
+                    </ol>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <script>
+        // Character counter for description
+        const descTextarea = document.getElementById('description');
+        const charCount = document.getElementById('charCount');
+        
+        descTextarea.addEventListener('input', function() {
+            charCount.textContent = this.value.length;
+        });
+
+        // File upload preview
+        const fileInput = document.getElementById('before_image');
+        const imagePreview = document.getElementById('imagePreview');
+        const uploadPlaceholder = document.querySelector('.upload-placeholder');
+
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    imagePreview.innerHTML = `<img src="${event.target.result}" alt="Preview">`;
+                    uploadPlaceholder.style.display = 'none';
+                    imagePreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Map initialization (Leaflet.js)
+        const map = L.map('map').setView([{{ user.locality_lat|default:"19.0760" }}, {{ user.locality_lng|default:"72.8777" }}], 13);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        let marker;
+
+        map.on('click', function(e) {
+            const { lat, lng } = e.latlng;
+            
+            // Remove existing marker if any
+            if (marker) {
+                map.removeLayer(marker);
+            }
+            
+            // Add new marker
+            marker = L.marker([lat, lng]).addTo(map);
+            
+            // Update hidden inputs
+            document.getElementById('latitude').value = lat.toFixed(6);
+            document.getElementById('longitude').value = lng.toFixed(6);
+            
+            // Update display
+            document.getElementById('locationDisplay').textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+        });
+    </script>
+
+    {% else %}
+    <!-- Not Authenticated View -->
+    <div class="auth-required-page">
+        <div class="auth-required">
+            <div class="auth-required-icon">🔒</div>
+            <h2>Login Required</h2>
+            <p>You must be logged in to register a complaint.</p>
+            <a href="{% url 'login' %}" class="btn btn-primary">Go to Login</a>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="background-pattern"></div>
+</body>
+</html>

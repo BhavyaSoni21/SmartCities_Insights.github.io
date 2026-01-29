@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | SmartCity Insight</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bitter:wght@400;600;700&family=Work+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="dashboard-page">
+    {% include 'navbar.html' %}
+
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="page-title">Locality Dashboard</h1>
+                    <p class="page-subtitle">{{ user.locality }} - Ward {{ user.ward_number }}</p>
+                </div>
+                {% if user.is_authenticated %}
+                <div class="user-info">
+                    <span class="user-name">{{ user.name }}</span>
+                    <span class="user-role-badge {{ user.role|lower }}">{{ user.role }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </header>
+
+        {% if user.is_authenticated %}
+        <main class="dashboard-main">
+            <!-- Statistics Section -->
+            <section class="stats-section">
+                <div class="stats-grid">
+                    <div class="stat-card stat-total">
+                        <div class="stat-icon-wrapper">
+                            <span class="stat-icon">📋</span>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value">{{ total_complaints|default:0 }}</div>
+                            <div class="stat-label">Total Complaints</div>
+                            <div class="stat-trend">All issues in {{ user.locality }}</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card stat-resolved">
+                        <div class="stat-icon-wrapper">
+                            <span class="stat-icon">✅</span>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value">{{ resolved_complaints|default:0 }}</div>
+                            <div class="stat-label">Resolved</div>
+                            <div class="stat-trend">
+                                {% if total_complaints > 0 %}
+                                {% widthratio resolved_complaints total_complaints 100 %}% completion rate
+                                {% else %}
+                                No data yet
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card stat-pending">
+                        <div class="stat-icon-wrapper">
+                            <span class="stat-icon">⏳</span>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value">{{ pending_complaints|default:0 }}</div>
+                            <div class="stat-label">Pending</div>
+                            <div class="stat-trend">Awaiting resolution</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Visual Analytics Section -->
+            <section class="analytics-section">
+                <div class="analytics-grid">
+                    <div class="chart-container">
+                        <h2 class="section-title">Status Distribution</h2>
+                        <div class="chart-wrapper">
+                            <canvas id="statusPieChart"></canvas>
+                        </div>
+                        <div class="chart-legend">
+                            <div class="legend-item">
+                                <span class="legend-color resolved-color"></span>
+                                <span>Resolved: {{ resolved_complaints|default:0 }}</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color pending-color"></span>
+                                <span>Pending: {{ pending_complaints|default:0 }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="insights-panel">
+                        <h2 class="section-title">Locality Insights</h2>
+                        <div class="insight-cards">
+                            <div class="insight-card">
+                                <div class="insight-metric">{{ sla_breached|default:0 }}</div>
+                                <div class="insight-label">SLA Breached</div>
+                                <div class="insight-indicator critical">Needs Attention</div>
+                            </div>
+                            <div class="insight-card">
+                                <div class="insight-metric">{{ avg_resolution_time|default:"--" }}</div>
+                                <div class="insight-label">Avg. Resolution Time</div>
+                                <div class="insight-indicator normal">Days</div>
+                            </div>
+                            <div class="insight-card">
+                                <div class="insight-metric">{{ active_reporters|default:0 }}</div>
+                                <div class="insight-label">Active Citizens</div>
+                                <div class="insight-indicator positive">This Month</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Action Buttons -->
+            <section class="actions-section">
+                <div class="action-buttons">
+                    <a href="{% url 'complaints' %}" class="btn btn-secondary btn-large">
+                        <span class="btn-icon">📄</span>
+                        View Local Complaints
+                    </a>
+                    
+                    <!-- Only visible for authenticated users -->
+                    <a href="{% url 'register_complaint' %}" class="btn btn-primary btn-large">
+                        <span class="btn-icon">➕</span>
+                        Register Complaint
+                    </a>
+                </div>
+            </section>
+
+            <!-- Recent Activity -->
+            <section class="activity-section">
+                <h2 class="section-title">Recent Activity in {{ user.locality }}</h2>
+                <div class="activity-list">
+                    {% for activity in recent_activities %}
+                    <div class="activity-item">
+                        <div class="activity-icon {{ activity.type }}"></div>
+                        <div class="activity-content">
+                            <div class="activity-text">{{ activity.description }}</div>
+                            <div class="activity-time">{{ activity.timestamp|timesince }} ago</div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="empty-state">
+                        <p>No recent activity to display</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+        </main>
+
+        {% else %}
+        <!-- Not Authenticated View -->
+        <div class="auth-required">
+            <div class="auth-required-icon">🔒</div>
+            <h2>Authentication Required</h2>
+            <p>Please log in to view your locality dashboard and manage complaints.</p>
+            <a href="{% url 'login' %}" class="btn btn-primary">Login / Register</a>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if user.is_authenticated %}
+    <script>
+        // Chart.js implementation for pie chart
+        const ctx = document.getElementById('statusPieChart');
+        if (ctx) {
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Resolved', 'Pending'],
+                    datasets: [{
+                        data: [
+                            Number("{{ resolved_complaints|default:0 }}"),
+                            Number("{{ pending_complaints|default:0 }}"),
+                        ],
+                        backgroundColor: ['#2a9d4e', '#f59e0b'],
+                        borderWidth: 0,
+                        borderRadius: 4,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: '#1f2937',
+                            padding: 12,
+                            cornerRadius: 8,
+                            titleFont: {
+                                size: 14,
+                                weight: '600'
+                            },
+                            bodyFont: {
+                                size: 13
+                            }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+        }
+    </script>
+    {% endif %}
+
+    <div class="background-pattern"></div>
+</body>
+</html>

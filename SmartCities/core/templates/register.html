@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | SmartCity Insight</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bitter:wght@400;600;700&family=Work+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+</head>
+<body class="auth-page">
+    <div class="auth-container">
+        <div class="auth-header">
+            <a href="{% url 'home' %}" class="back-link">← Back to Home</a>
+            <div class="logo-section">
+                <h1 class="auth-title">SmartCity Insight</h1>
+                <p class="auth-subtitle">Create Your Citizen Account</p>
+            </div>
+        </div>
+
+        <div class="form-container">
+            <form action="{% url 'register' %}" method="POST" class="auth-form">
+                {% csrf_token %}
+                
+                <div class="form-section">
+                    <h2 class="section-title">Personal Information</h2>
+                    
+                    <div class="form-group">
+                        <label for="name">Full Name</label>
+                        <input 
+                            type="text" 
+                            id="name" 
+                            name="name" 
+                            required 
+                            placeholder="Enter your full name"
+                            class="form-input"
+                        >
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="age">Age</label>
+                            <input 
+                                type="number" 
+                                id="age" 
+                                name="age" 
+                                required 
+                                min="18" 
+                                max="120"
+                                placeholder="18+"
+                                class="form-input"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="mobile">Mobile Number</label>
+                            <input 
+                                type="tel" 
+                                id="mobile" 
+                                name="mobile" 
+                                required 
+                                pattern="[0-9]{10}"
+                                placeholder="10-digit mobile"
+                                class="form-input"
+                            >
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2 class="section-title">Account Credentials</h2>
+                    
+                    <div class="form-group">
+                        <label for="email">Email ID</label>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            name="email" 
+                            required 
+                            placeholder="your.email@example.com"
+                            class="form-input"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            required 
+                            minlength="8"
+                            placeholder="Minimum 8 characters"
+                            class="form-input"
+                        >
+                        <span class="input-hint">Use a strong password with letters, numbers, and symbols</span>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2 class="section-title">Location Details</h2>
+                    
+                    <div class="form-group">
+                        <label for="locality">Locality / Ward</label>
+                        <select id="locality" name="locality" required class="form-select">
+                            <option value="">Select your locality</option>
+                            <option value="ward_1">Ward 1 - Central District</option>
+                            <option value="ward_2">Ward 2 - North Zone</option>
+                            <option value="ward_3">Ward 3 - South Zone</option>
+                            <option value="ward_4">Ward 4 - East Zone</option>
+                            <option value="ward_5">Ward 5 - West Zone</option>
+                            <option value="ward_6">Ward 6 - Industrial Area</option>
+                            <option value="ward_7">Ward 7 - Residential Belt</option>
+                            <option value="ward_8">Ward 8 - Commercial Hub</option>
+                        </select>
+                        <span class="input-hint">This helps us route complaints to the right authority</span>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-large">
+                        Create Account
+                    </button>
+                </div>
+
+                <div class="form-footer">
+                    <p>Already have an account? <a href="{% url 'login' %}" class="link">Login here</a></p>
+                </div>
+            </form>
+        </div>
+
+        <div class="info-panel">
+            <div class="info-card">
+                <h3>🏛️ Civic Participation</h3>
+                <p>By registering, you become an active participant in your city's sustainable development journey.</p>
+            </div>
+            <div class="info-card">
+                <h3>🔒 Data Privacy</h3>
+                <p>Your information is secure and used solely for complaint management and community engagement.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="background-pattern"></div>
+</body>
+</html>

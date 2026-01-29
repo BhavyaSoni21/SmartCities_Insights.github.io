@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | SmartCity Insight</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bitter:wght@400;600;700&family=Work+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+</head>
+<body class="auth-page">
+    <div class="auth-container login-container">
+        <div class="auth-header">
+            <a href="{% url 'home' %}" class="back-link">← Back to Home</a>
+            <div class="logo-section">
+                <h1 class="auth-title">SmartCity Insight</h1>
+                <p class="auth-subtitle">Login to Your Account</p>
+            </div>
+        </div>
+
+        <div class="form-container">
+            <form action="{% url 'login' %}" method="POST" class="auth-form login-form">
+                {% csrf_token %}
+                
+                {% if messages %}
+                <div class="alert-messages">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="form-section">
+                    <div class="form-group">
+                        <label for="email">Email ID</label>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            name="email" 
+                            required 
+                            placeholder="your.email@example.com"
+                            class="form-input"
+                            autofocus
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            required 
+                            placeholder="Enter your password"
+                            class="form-input"
+                        >
+                    </div>
+
+                    <div class="form-options">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="remember" class="checkbox-input">
+                            <span>Remember me</span>
+                        </label>
+                        <a href="#" class="link-secondary">Forgot password?</a>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-large">
+                        Login
+                    </button>
+                </div>
+
+                <div class="form-footer">
+                    <p>Don't have an account? <a href="{% url 'register' %}" class="link">Register here</a></p>
+                </div>
+            </form>
+
+            <div class="role-info">
+                <div class="info-badge">
+                    <strong>ℹ️ Role Assignment</strong>
+                    <p>Your role (Citizen or Ward Admin) will be automatically identified after login based on your account type.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="login-benefits">
+            <h3>What You Can Do After Login</h3>
+            <ul class="benefits-list">
+                <li>
+                    <span class="benefit-icon">📝</span>
+                    <span>Register and track complaints in your locality</span>
+                </li>
+                <li>
+                    <span class="benefit-icon">📊</span>
+                    <span>View locality statistics and resolution rates</span>
+                </li>
+                <li>
+                    <span class="benefit-icon">🕐</span>
+                    <span>Monitor SLA compliance and escalation status</span>
+                </li>
+                <li>
+                    <span class="benefit-icon">👁️</span>
+                    <span>Access transparent, real-time progress updates</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="background-pattern"></div>
+</body>
+</html>
