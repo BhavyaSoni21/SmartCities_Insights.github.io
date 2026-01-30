@@ -167,61 +167,111 @@
     </div>
 
     <script>
-        // Character counter for description
-        const descTextarea = document.getElementById('description');
-        const charCount = document.getElementById('charCount');
+        document.addEventListener('DOMContentLoaded', () => {
         
-        descTextarea.addEventListener('input', function() {
-            charCount.textContent = this.value.length;
-        });
-
-        // File upload preview
-        const fileInput = document.getElementById('before_image');
-        const imagePreview = document.getElementById('imagePreview');
-        const uploadPlaceholder = document.querySelector('.upload-placeholder');
-
-        fileInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    imagePreview.innerHTML = `<img src="${event.target.result}" alt="Preview">`;
-                    uploadPlaceholder.style.display = 'none';
-                    imagePreview.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        // Map initialization (Leaflet.js)
-        const map = L.map('map').setView([{{ user.locality_lat|default:"19.0760" }}, {{ user.locality_lng|default:"72.8777" }}], 13);
+            /* -------------------------
+               CHARACTER COUNTER
+            -------------------------- */
+            const descTextarea = document.getElementById('description');
+            const charCount = document.getElementById('charCount');
+            const MAX_CHARS = 500;
         
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
-
-        let marker;
-
-        map.on('click', function(e) {
-            const { lat, lng } = e.latlng;
-            
-            // Remove existing marker if any
-            if (marker) {
-                map.removeLayer(marker);
+            if (descTextarea && charCount) {
+                charCount.textContent = descTextarea.value.length;
+        
+                descTextarea.addEventListener('input', function () {
+                    if (this.value.length > MAX_CHARS) {
+                        this.value = this.value.slice(0, MAX_CHARS);
+                    }
+                    charCount.textContent = this.value.length;
+                });
             }
-            
-            // Add new marker
-            marker = L.marker([lat, lng]).addTo(map);
-            
-            // Update hidden inputs
-            document.getElementById('latitude').value = lat.toFixed(6);
-            document.getElementById('longitude').value = lng.toFixed(6);
-            
-            // Update display
-            document.getElementById('locationDisplay').textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+        
+            /* -------------------------
+               IMAGE PREVIEW (SAFE)
+            -------------------------- */
+            const fileInput = document.getElementById('before_image');
+            const imagePreview = document.getElementById('imagePreview');
+            const uploadPlaceholder = document.querySelector('.upload-placeholder');
+        
+            if (fileInput) {
+                fileInput.addEventListener('change', function (e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+        
+                    if (!file.type.startsWith('image/')) {
+                        alert('Only image files are allowed');
+                        fileInput.value = '';
+                        return;
+                    }
+        
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert('Image must be under 5MB');
+                        fileInput.value = '';
+                        return;
+                    }
+        
+                    const reader = new FileReader();
+                    reader.onload = function (event) {
+                        imagePreview.innerHTML = `<img src="${event.target.result}" alt="Preview">`;
+                        uploadPlaceholder.style.display = 'none';
+                        imagePreview.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+        
+            /* -------------------------
+               MAP (LEAFLET)
+            -------------------------- */
+            const mapElement = document.getElementById('map');
+            if (!mapElement) return;
+        
+            const defaultLat = parseFloat(mapElement.dataset.lat) || 19.0760;
+            const defaultLng = parseFloat(mapElement.dataset.lng) || 72.8777;
+        
+            const map = L.map('map').setView([defaultLat, defaultLng], 13);
+        
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+        
+            let marker = null;
+        
+            map.on('click', function (e) {
+                const { lat, lng } = e.latlng;
+        
+                if (marker) {
+                    map.removeLayer(marker);
+                }
+        
+                marker = L.marker([lat, lng]).addTo(map);
+        
+                document.getElementById('latitude').value = lat.toFixed(6);
+                document.getElementById('longitude').value = lng.toFixed(6);
+                document.getElementById('locationDisplay').textContent =
+                    `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+            });
+        
+            /* -------------------------
+               FORM VALIDATION
+            -------------------------- */
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function (e) {
+                    const lat = document.getElementById('latitude').value;
+                    const lng = document.getElementById('longitude').value;
+        
+                    if (!lat || !lng) {
+                        e.preventDefault();
+                        alert('Please select a location on the map');
+                    }
+                });
+            }
+        
         });
-    </script>
+    </script>        
 
     {% else %}
     <!-- Not Authenticated View -->
