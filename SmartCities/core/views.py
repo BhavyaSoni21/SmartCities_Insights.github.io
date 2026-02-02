@@ -7,10 +7,15 @@ from django.urls import reverse
 from django.utils import timezone
 import json # For JSON serialization
 from django.core.serializers.json import DjangoJSONEncoder # Better serialization
+from django.core.paginator import Paginator
 
-from .models import Complaint, UserProfile
-
+from .models import Complaint, UserProfile            
+from django.contrib.auth import get_user_model
 from .forms import UserForm, ProfileForm
+from django.db.models import Count
+
+from django.db.models import Avg, F, ExpressionWrapper, DurationField
+
 
 def _attach_profile_attrs(request: HttpRequest) -> None:
     """
@@ -40,31 +45,100 @@ def _attach_profile_attrs(request: HttpRequest) -> None:
     user.age = profile.age
 
 def home(request: HttpRequest) -> HttpResponse:
-    issues = Complaint.objects.all() # Was Issue
-    return render(request, 'home.html', {'issues': issues})
+    # Only citizen profiles
+    citizen_profiles = UserProfile.objects.filter(role='Citizen')
 
+    # Only complaints raised by citizens
+    citizen_complaints = Complaint.objects.filter(
+        user__profile__role='Citizen'
+    )
+
+    # Issues resolved (citizen complaints only)
+    resolved_count = citizen_complaints.filter(status='resolved').count()
+
+    # Active citizens = distinct citizen users who filed complaints
+    active_citizens = (
+        citizen_complaints
+        .values('user')
+        .distinct()
+        .count()
+    )
+
+    # Localities covered = distinct localities from citizen profiles
+    localities_covered = (
+        citizen_profiles
+        .exclude(locality='')
+        .values('locality')
+        .distinct()
+        .count()
+    )
+
+    context = {
+        'resolved_count': resolved_count,
+        'active_citizens': active_citizens,
+        'localities_covered': localities_covered,
+    }
+
+    return render(request, 'home.html', context)
 
 @login_required
 def dashboard(request: HttpRequest) -> HttpResponse:
     _attach_profile_attrs(request)
-    
-    # Fetch complaints based on user role
+
+    # ======================
+    # DATA SCOPE
+    # ======================
     if request.user.role == 'Admin':
-        # Admins see all complaints from their locality
-        user_complaints = Complaint.objects.filter(user__profile__locality=request.user.locality)
+        complaints_qs = Complaint.objects.select_related(
+            'user', 'user__profile'
+        ).all()
+
+        top_complaints = complaints_qs.filter(
+            status='pending'
+        ).order_by('-created_at')[:5]
     else:
-        # Citizens see only their own complaints
-        user_complaints = Complaint.objects.filter(user=request.user)
-    
-    # Calculate stats
-    total_complaints = user_complaints.count()
-    resolved_complaints = user_complaints.filter(status='resolved').count()
-    pending_complaints = user_complaints.filter(status='pending').count()
-    
-    # Prepare map data
-    complaints_list_json = []
-    for c in user_complaints:
-        complaints_list_json.append({
+        complaints_qs = Complaint.objects.filter(user=request.user)
+        top_complaints = []
+
+    complaints_qs = complaints_qs.order_by('-created_at')
+
+    # ======================
+    # BASIC STATS
+    # ======================
+    total_complaints = complaints_qs.count()
+    resolved_count = complaints_qs.filter(status='resolved').count()
+    pending_count = complaints_qs.filter(status='pending').count()
+    sla_breached_count = sum(
+        1 for c in complaints_qs if c.sla_status == 'breached'
+    )
+
+    # ======================
+    # AVERAGE RESOLUTION TIME (HOURS)
+    # ======================
+    resolved_items = complaints_qs.filter(
+        status='resolved',
+        resolved_at__isnull=False
+    )
+
+    total_hours = 0
+    resolved_items_count = 0
+
+    for c in resolved_items:
+        if c.resolution_time_hours is not None:
+            total_hours += c.resolution_time_hours
+            resolved_items_count += 1
+
+    avg_resolution_time = (
+        round(total_hours / resolved_items_count, 2)
+        if resolved_items_count > 0
+        else None
+    )
+
+    # ======================
+    # MAP DATA
+    # ======================
+    complaints_json = [
+        {
             'id': c.id,
             'issue_type': c.issue_type.title(),
             'description': c.description,
@@ -72,32 +146,46 @@ def dashboard(request: HttpRequest) -> HttpResponse:
             'longitude': c.longitude or 72.8777,
             'status': c.status,
             'sla_status': c.sla_status,
-        })
-    
+        }
+        for c in complaints_qs
+    ]
+
+    # ======================
+    # RECENT ACTIVITY
+    # ======================
+    recent_activities = [
+        {
+            'id': c.id,
+            'type': (
+                'critical' if c.sla_status == 'breached'
+                else 'resolved' if c.status == 'resolved'
+                else 'new'
+            ),
+            'description': f"{c.issue_type.title()} near {c.landmark or 'unknown location'}",
+            'timestamp': c.resolved_at if c.status == 'resolved' else c.created_at
+        }
+        for c in complaints_qs[:5]
+    ]
+
     return render(
         request,
         'dashboard.html',
         {
             'total_complaints': total_complaints,
-            'resolved_complaints': resolved_complaints,
-            'pending_complaints': pending_complaints,
-            'sla_breached': sum(1 for c in user_complaints if c.sla_status == 'breached'),
-            'avg_resolution_time': '--',
-            'active_reporters': user_complaints.values('user').distinct().count(),
-            'recent_activities': [
-                {
-                    'id': c.id,
-                    'type': 'resolved' if c.status == 'resolved' else 'new',
-                    'description': f"{'Resolved' if c.status == 'resolved' else 'New'} {c.issue_type} reported near {c.landmark or 'unknown location'}",
-                    'timestamp': c.resolved_at if c.status == 'resolved' else c.created_at
-                }
-                for c in Complaint.objects.filter(user__profile__locality=request.user.locality).order_by('-created_at')[:5]
-            ],
-            'complaints_list': user_complaints.order_by('-created_at'),
+            'resolved_complaints': resolved_count,
+            'pending_complaints': pending_count,
+            'sla_breached_count': sla_breached_count,
+            'avg_resolution_time': avg_resolution_time,
+            'active_reporters': complaints_qs.values('user').distinct().count(),
+            'recent_activities': recent_activities,
+            'complaints_list': complaints_qs,
+            'complaints': complaints_qs,
+            'top_complaints': top_complaints,
             'ward_center_lat': 19.0760,
             'ward_center_lng': 72.8777,
-            'complaints_json': json.dumps(complaints_list_json, cls=DjangoJSONEncoder),
-            'sla_breached_count': 0, # Just to satisfy template check if present
+            'complaints_json': json.dumps(
+                complaints_json, cls=DjangoJSONEncoder
+            ),
         },
     )
 
@@ -105,16 +193,27 @@ def dashboard(request: HttpRequest) -> HttpResponse:
 @login_required
 def complaints(request: HttpRequest) -> HttpResponse:
     _attach_profile_attrs(request)
-    
-    # Fetch complaints based on user role
-    if request.user.role == 'Admin':
-        # Admins see all complaints from their locality
-        complaints_list = Complaint.objects.filter(user__profile__locality=request.user.locality).order_by('-created_at')
-    else:
-        # Citizens see only their own complaints
-        complaints_list = Complaint.objects.filter(user=request.user).order_by('-created_at')
-    
-    return render(request, 'complaints.html', {'complaints': complaints_list})
+
+    # ROLE-BASED VISIBILITY
+    complaints_qs = Complaint.objects.select_related(
+        'user', 'user__profile'
+    ).all()
+
+    complaints_qs = complaints_qs.order_by('-created_at')
+
+    # Pagination (your template expects this)
+    paginator = Paginator(complaints_qs, 6)
+    page_number = request.GET.get('page')
+    complaints_page = paginator.get_page(page_number)
+
+    return render(
+        request,
+        'complaints.html',
+        {
+            'complaints': complaints_page
+        }
+    )
+
 
 
 @login_required
@@ -234,7 +333,10 @@ def admin_dashboard(request: HttpRequest) -> HttpResponse:
             'sla_status': c.sla_status,
         })
         
-    sla_breached_count = len(sla_breached_complaints)
+    sla_breached_count = sum(
+        1 for c in complaints_qs if c.sla_status == 'breached'
+    )
+
     
     context = {
         'sla_breached_count': sla_breached_count,
@@ -282,7 +384,6 @@ def login_view(request: HttpRequest) -> HttpResponse:
 
         # Temporary demo bypass: if demo credentials, auto-create account
         if email == 'demo@city.com' and password == 'demo12345':
-            from django.contrib.auth import get_user_model
             User = get_user_model()
             try:
                 user, created = User.objects.get_or_create(
@@ -338,8 +439,6 @@ def login_view(request: HttpRequest) -> HttpResponse:
 
 def register_view(request: HttpRequest) -> HttpResponse:
     if request.method == 'POST':
-        from django.contrib.auth import get_user_model
-
         User = get_user_model()
         email = (request.POST.get('email') or '').strip().lower()
         password = request.POST.get('password') or ''
@@ -396,7 +495,7 @@ def profile_settings(request):
         user_form = UserForm(instance=user)
         profile_form = ProfileForm(instance=profile)
 
-    return render(request, 'settings.html', {
+    return render(request, 'settings.html', {   
         'user_form': user_form,
         'profile_form': profile_form
     })

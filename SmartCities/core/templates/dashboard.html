@@ -109,9 +109,9 @@
                                 <div class="insight-indicator critical">Needs Attention</div>
                             </div>
                             <div class="insight-card">
-                                <div class="insight-metric">{{ avg_resolution_time|default:"--" }}</div>
+                                <div class="insight-metric">{{ avg_resolution_time|default:"--" }} hrs</div>
                                 <div class="insight-label">Avg. Resolution Time</div>
-                                <div class="insight-indicator normal">Days</div>
+                                <div class="insight-indicator normal">Hours</div>
                             </div>
                             <div class="insight-card">
                                 <div class="insight-metric">{{ active_reporters|default:0 }}</div>
@@ -143,21 +143,53 @@
 
             <!-- Recent Activity -->
             <section class="activity-section">
-                <h2 class="section-title">Recent Activity in {{ user.locality }}</h2>
+                <h2 class="section-title">
+                    {% if user.profile.role == 'Admin' %}
+                        Top Complaints Across the City
+                    {% else %}
+                        Your Recent Activity
+                    {% endif %}
+                </h2>
+                
                 <div class="activity-list">
-                    {% for activity in recent_activities %}
-                    <div class="activity-item">
-                        <div class="activity-icon {{ activity.type }}"></div>
-                        <div class="activity-content">
-                            <div class="activity-text">{{ activity.description }}</div>
-                            <div class="activity-time">{{ activity.timestamp|timesince }} ago</div>
+                    {% if user.profile.role == 'Admin' %}
+                        {% for complaint in top_complaints %}
+                            <div class="activity-item">
+                                <div class="activity-icon {{ complaint.status }}"></div>
+
+                                <div class="activity-content">
+                                    <div class="activity-text">
+                                        {{ complaint.title }}
+                                        {% if complaint.landmark %}
+                                            · {{ complaint.landmark }}
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="activity-time">
+                                        Reported {{ complaint.created_at|timesince }} ago
+                                    </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="empty-state">
+                                <p>No top complaints to display</p>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        {% for activity in recent_activities %}
+                        <div class="activity-item">
+                            <div class="activity-icon {{ activity.type }}"></div>
+                            <div class="activity-content">
+                                <div class="activity-text">{{ activity.description }}</div>
+                                <div class="activity-time">{{ activity.timestamp|timesince }} ago</div>
+                            </div>
                         </div>
-                    </div>
-                    {% empty %}
-                    <div class="empty-state">
-                        <p>No recent activity to display</p>
-                    </div>
-                    {% endfor %}
+                        {% empty %}
+                        <div class="empty-state">
+                            <p>No recent activity to display</p>
+                        </div>
+                        {% endfor %}
+                    {% endif %} 
                 </div>
             </section>
         </main>

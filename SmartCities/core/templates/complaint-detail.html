@@ -27,10 +27,26 @@
 
     <section class="detail-meta">
         <p><strong>Issue Type:</strong> {{ complaint.issue_type|title }}</p>
-        <p><strong>Reported By:</strong> {{ complaint.user.profile.name|default:complaint.user.username}}</p>
+        <p><strong>Reported By:</strong> {{ complaint.user.profile.name|default:complaint.user.username }}</p>
         <p><strong>Locality:</strong> {{ complaint.user.profile.locality|default:'Location' }}</p>
         <p><strong>Reported On:</strong> {{ complaint.created_at|date:"d M Y, H:i" }}</p>
+
+        <p>
+            <strong>SLA Status:</strong>
+            {% if complaint.status == 'resolved' %}
+                <span class="sla-badge resolved">✅ Resolved</span>
+            {% elif complaint.sla_status == 'breached' %}
+                <span class="sla-badge breached">
+                    ⚠ {{ complaint.sla_hours_overdue }} hrs overdue
+                </span>
+            {% else %}
+                <span class="sla-badge normal">
+                    ⏱ {{ complaint.sla_hours_remaining }} hrs left
+                </span>
+            {% endif %}
+        </p>
     </section>
+
 
     <section class="detail-description">
         <h2>Description</h2>

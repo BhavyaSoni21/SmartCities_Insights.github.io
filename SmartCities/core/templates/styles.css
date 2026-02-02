@@ -2972,4 +2972,9 @@
 .form-actions {
     margin-top: 2rem;
     text-align: right;
-}
+}   
+
+.activity-icon.critical { background-color: #fee2e2; }
+.activity-icon.pending  { background-color: #fef3c7; }
+.activity-icon.resolved { background-color: #d1fae5; }
+.activity-icon.new      { background-color: #dbeafe; }

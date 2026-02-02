@@ -67,7 +67,8 @@
                     <label for="slaFilter">SLA Status</label>
                     <select id="slaFilter" class="filter-select">
                         <option value="all">All SLA</option>
-                        <option value="normal">Normal</option>
+                        <option value="active">Within SLA</option>
+                        <option value="resolved">Resolved</option>
                         <option value="breached">Breached</option>
                     </select>
                 </div>
@@ -103,11 +104,25 @@
                         <span class="status-badge {{ complaint.status }}">
                             {{ complaint.status|title }}
                         </span>
-                        {% if complaint.sla_status == 'breached' %}
-                        <span class="sla-badge breached">⚠️ SLA Breached</span>
+                        {% if complaint.status == 'pending' %}
+                            {% if complaint.sla_status == 'breached' %}
+                                <span class="sla-badge breached">
+                                    ⚠ {{ complaint.sla_hours_overdue }} hrs overdue
+                                </span>
+                            {% else %}
+                                <span class="sla-badge normal">
+                                    ⏱ {{ complaint.sla_hours_remaining }} hrs left
+                                </span>
+                            {% endif %}
                         {% else %}
-                        <span class="sla-badge normal">✓ Within SLA</span>
+                            {% if complaint.sla_status == 'breached' %}
+                                <span class="sla-badge breached">
+                                    ⚠ SLA Breached
+                                </span>
+                            {% endif %}
                         {% endif %}
+
+
                     </div>
                     <div class="complaint-timestamp">
                         {{ complaint.created_at|date:"d M Y, H:i" }}
@@ -178,15 +193,24 @@
                         </div>
                         <div class="timeline-item">
                             <span class="timeline-label">Resolution Time:</span>
-                            <span class="timeline-value">{{ complaint.resolution_duration }} days</span>
+                            <span class="timeline-value">
+                                {{ complaint.hours_pending }} hrs
+                            </span>
                         </div>
                         {% else %}
                         <div class="timeline-item">
                             <span class="timeline-label">Pending for:</span>
-                            <span class="timeline-value {{ complaint.sla_class }}">{{ complaint.days_pending }}
-                                days</span>
+                            <span class="timeline-value
+                                {% if complaint.sla_status == 'breached' %}critical{% else %}normal{% endif %}">
+                                {{ complaint.hours_pending }} hrs
+                            </span>
                         </div>
                         {% endif %}
+                    </div>
+                    <div class="complaint-meta">
+                        <small class="sla-info">
+                            SLA: {{ complaint.sla_hours }} hrs
+                        </small>
                     </div>
 
                     <div class="complaint-actions">
@@ -238,46 +262,66 @@
     </div>
 
     <script>
-        // Filter functionality
-        function filterComplaints() {
-            const statusFilter = document.getElementById('statusFilter').value;
-            const typeFilter = document.getElementById('typeFilter').value;
-            const slaFilter = document.getElementById('slaFilter').value;
+    function filterComplaints() {
+        const statusFilter = document.getElementById('statusFilter')?.value || 'all';
+        const typeFilter = document.getElementById('typeFilter')?.value || 'all';
+        const slaFilter = document.getElementById('slaFilter')?.value || 'all';
 
-            const cards = document.querySelectorAll('.complaint-card');
+        const cards = document.querySelectorAll('.complaint-card');
 
-            cards.forEach(card => {
-                const status = card.dataset.status;
-                const type = card.dataset.type;
-                const sla = card.dataset.sla;
+        cards.forEach(card => {
+            const status = card.dataset.status;
+            const type = card.dataset.type;
+            const sla = card.dataset.sla;
 
-                const matchStatus = statusFilter === 'all' || status === statusFilter;
-                const matchType = typeFilter === 'all' || type === typeFilter;
-                const matchSLA = slaFilter === 'all' || sla === slaFilter;
+            const matchStatus =
+                statusFilter === 'all' || status === statusFilter;
 
-                if (matchStatus && matchType && matchSLA) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-        }
+            const matchType =
+                typeFilter === 'all' || type === typeFilter;
 
-        function resetFilters() {
-            document.getElementById('statusFilter').value = 'all';
-            document.getElementById('typeFilter').value = 'all';
-            document.getElementById('slaFilter').value = 'all';
-            document.getElementById('sortFilter').value = 'recent';
-            filterComplaints();
-        }
+            const matchSLA =
+                slaFilter === 'all' ||
+                (slaFilter === 'active' && sla === 'active') ||
+                (slaFilter === 'breached' && sla === 'breached') ||
+                (slaFilter === 'resolved' && sla === 'resolved');
 
-        // Attach event listeners
-        document.getElementById('statusFilter').addEventListener('change', filterComplaints);
-        document.getElementById('typeFilter').addEventListener('change', filterComplaints);
-        document.getElementById('slaFilter').addEventListener('change', filterComplaints);
-    </script>
+            card.style.display =
+                matchStatus && matchType && matchSLA ? 'block' : 'none';
+        });
+    }
 
-    <div class="background-pattern"></div>
+    function resetFilters() {
+        const statusFilter = document.getElementById('statusFilter');
+        const typeFilter = document.getElementById('typeFilter');
+        const slaFilter = document.getElementById('slaFilter');
+        const sortFilter = document.getElementById('sortFilter');
+
+        if (statusFilter) statusFilter.value = 'all';
+        if (typeFilter) typeFilter.value = 'all';
+        if (slaFilter) slaFilter.value = 'all';
+        if (sortFilter) sortFilter.value = 'recent';
+
+        filterComplaints();
+    }
+
+    // Attach listeners safely (prevents JS errors)
+    document.addEventListener('DOMContentLoaded', () => {
+        const statusFilter = document.getElementById('statusFilter');
+        const typeFilter = document.getElementById('typeFilter');
+        const slaFilter = document.getElementById('slaFilter');
+
+        if (statusFilter)
+            statusFilter.addEventListener('change', filterComplaints);
+
+        if (typeFilter)
+            typeFilter.addEventListener('change', filterComplaints);
+
+        if (slaFilter)
+            slaFilter.addEventListener('change', filterComplaints);
+    });
+</script>
+<div class="background-pattern"></div>
 </body>
 
 </html>

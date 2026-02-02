@@ -62,17 +62,17 @@
 
             <div class="stats-banner">
                 <div class="stat-item">
-                    <div class="stat-number">12,847</div>
+                    <div class="stat-number">{{ resolved_count|default:"0" }}</div>
                     <div class="stat-label">Issues Resolved</div>
                 </div>
                 <div class="stat-divider"></div>
                 <div class="stat-item">
-                    <div class="stat-number">8,432</div>
+                    <div class="stat-number">{{ active_citizens }}</div>
                     <div class="stat-label">Active Citizens</div>
                 </div>
                 <div class="stat-divider"></div>
                 <div class="stat-item">
-                    <div class="stat-number">156</div>
+                    <div class="stat-number">{{ localities_covered }}</div>
                     <div class="stat-label">Localities Covered</div>
                 </div>
             </div>
