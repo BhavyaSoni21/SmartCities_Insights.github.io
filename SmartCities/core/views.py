@@ -44,7 +44,7 @@ def _attach_profile_attrs(request: HttpRequest) -> None:
     user.mobile = profile.mobile
     user.age = profile.age
 
-def home(request: HttpRequest) -> HttpResponse:
+def index(request: HttpRequest) -> HttpResponse:
     # Only citizen profiles
     citizen_profiles = UserProfile.objects.filter(role='Citizen')
 
@@ -79,7 +79,7 @@ def home(request: HttpRequest) -> HttpResponse:
         'localities_covered': localities_covered,
     }
 
-    return render(request, 'home.html', context)
+    return render(request, 'index.html', context)
 
 @login_required
 def dashboard(request: HttpRequest) -> HttpResponse:
@@ -105,6 +105,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
     # ======================
     # BASIC STATS
     # ======================
+    
     total_complaints = complaints_qs.count()
     resolved_count = complaints_qs.filter(status='resolved').count()
     pending_count = complaints_qs.filter(status='pending').count()
@@ -474,8 +475,8 @@ def register_view(request: HttpRequest) -> HttpResponse:
 
 def logout_view(request: HttpRequest) -> HttpResponse:
     auth_logout(request)
-    # Navbar uses this named URL; always return to home.
-    return redirect(reverse('home'))
+    # Navbar uses this named URL; always return to index.
+    return redirect(reverse('index'))
 
 @login_required
 def profile_settings(request):

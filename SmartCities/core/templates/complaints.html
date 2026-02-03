@@ -60,6 +60,7 @@
                         <option value="garbage">Garbage</option>
                         <option value="pothole">Pothole</option>
                         <option value="streetlight">Streetlight</option>
+                        <option value="other">Other</option>
                     </select>
                 </div>
 
@@ -98,6 +99,7 @@
                             {% if complaint.issue_type == 'garbage' %}🗑️
                             {% elif complaint.issue_type == 'pothole'%}🛣️
                             {% elif complaint.issue_type == 'streetlight'%}💡
+                            {% elif complaint.issue_type == 'other'%}❓
                             {% endif %}
                             {{ complaint.issue_type|title }}
                         </span>
@@ -156,7 +158,7 @@
                             <div class="image-label">Before</div>
                             <img src="{{ complaint.before_image.url }}" alt="Before image" class="complaint-image"
                                 loading="lazy">
-                            <small class="debug-path">{{ complaint.before_image.url }}</small>
+                            <!-- <small class="debug-path">{{ complaint.before_image.url }}</small> -->
                         </div>
                         {% else %}
                         <div class="image-placeholder">
@@ -170,7 +172,7 @@
                             <div class="image-label">After</div>
                             <img src="{{ complaint.after_image.url }}" alt="After image" class="complaint-image"
                                 loading="lazy">
-                            <small class="debug-path">{{ complaint.after_image.url }}</small>
+                            <!-- <small class="debug-path">{{ complaint.after_image.url }}</small> -->
                         </div>
                         {% else %}
                         <div class="image-placeholder">

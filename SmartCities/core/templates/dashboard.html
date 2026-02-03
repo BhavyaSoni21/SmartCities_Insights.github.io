@@ -161,7 +161,7 @@
                                     <div class="activity-text">
                                         {{ complaint.title }}
                                         {% if complaint.landmark %}
-                                            · {{ complaint.landmark }}
+                                            · {{ complaint.user.profile.locality }}
                                         {% endif %}
                                     </div>
 

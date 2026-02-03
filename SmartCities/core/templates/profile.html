@@ -22,10 +22,12 @@
             <a href="{% url 'dashboard' %}" class="back-link">← Back to Dashboard</a>
             <h1 class="page-title">My Profile</h1>
         </header>
-
+        
         <div class="profile-layout">
             <!-- User Info Section -->
+            {% if user.role|lower != 'admin' %}
             <aside class="profile-sidebar">
+            {% endif %}
                 <div class="profile-card">
                     <div class="profile-avatar">
                         <div class="avatar-circle">{{ user.name|first|upper }}</div>
@@ -33,56 +35,77 @@
                     <div class="profile-info">
                         <h2 class="profile-name">{{ user.name }}</h2>
                         <p class="profile-email">{{ user.email }}</p>
-                        <span class="profile-role-badge {{ user.role|lower }}">{{ user.role }}</span>
+                        <span class="profile-role-badge {{ user.role|lower }}">
+                            {{ user.role }}
+                        </span>
                     </div>
                 </div>
 
                 <div class="profile-details">
                     <h3 class="details-title">Account Details</h3>
+
                     <div class="detail-item">
                         <span class="detail-label">Mobile:</span>
                         <span class="detail-value">{{ user.mobile }}</span>
                     </div>
+
                     <div class="detail-item">
                         <span class="detail-label">Age:</span>
                         <span class="detail-value">{{ user.age }} years</span>
                     </div>
+
                     <div class="detail-item">
                         <span class="detail-label">Locality:</span>
                         <span class="detail-value">{{ user.locality }}</span>
                     </div>
+
                     <div class="detail-item">
                         <span class="detail-label">Member Since:</span>
-                        <span class="detail-value">{{ user.date_joined|date:"d M Y" }}</span>
+                        <span class="detail-value">
+                            {{ user.date_joined|date:"d M Y" }}
+                        </span>
                     </div>
                 </div>
-
+                {% if user.role|lower != 'admin' %}
                 <div class="profile-stats">
                     <h3 class="stats-title">My Impact</h3>
+
                     <div class="stat-row">
                         <span class="stat-icon">📝</span>
                         <div class="stat-info">
-                            <div class="stat-number">{{ user_total_complaints }}</div>
+                            <div class="stat-number">
+                                {{ user_total_complaints }}
+                            </div>
                             <div class="stat-label">Total Complaints</div>
                         </div>
                     </div>
+
                     <div class="stat-row">
                         <span class="stat-icon">✅</span>
                         <div class="stat-info">
-                            <div class="stat-number">{{ user_resolved_complaints }}</div>
+                            <div class="stat-number">
+                                {{ user_resolved_complaints }}
+                            </div>
                             <div class="stat-label">Resolved</div>
                         </div>
                     </div>
+
                     <div class="stat-row">
                         <span class="stat-icon">⏳</span>
                         <div class="stat-info">
-                            <div class="stat-number">{{ user_pending_complaints }}</div>
+                            <div class="stat-number">
+                                {{ user_pending_complaints }}
+                            </div>
                             <div class="stat-label">Pending</div>
                         </div>
                     </div>
+                {% endif %}
                 </div>
+
             </aside>
 
+            
+            {% if user.role|lower != 'admin' %}
             <!-- User Complaints Section -->
             <main class="profile-main">
                 <div class="complaints-header">
@@ -243,6 +266,9 @@
                     </div>
                 </div>
             </main>
+            <!-- complaints UI -->
+            {% endif %}
+
         </div>
     </div>
 
