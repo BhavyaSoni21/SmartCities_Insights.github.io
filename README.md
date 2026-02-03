@@ -1,429 +1,431 @@
-# SmartCity Insight - Complete HTML Template Package
+# 🏙️ SmartCity Insight  
+**Urban Issue Management Platform | SDG 11 Aligned**
 
-## 📋 Overview
-
-This package contains a complete set of responsive HTML pages for **SmartCity Insight**, a web application for urban issue management aligned with SDG 11 (Sustainable Cities and Communities).
-
-## 🎨 Design Philosophy
-
-The interface features a **civic/government aesthetic** with:
-- Professional, trustworthy appearance
-- Clear hierarchy and accountability indicators
-- Accessible, readable typography (Bitter serif + Work Sans sans-serif)
-- Civic color palette (forest green primary, amber secondary)
-- Transparent data visualization
-- Mobile-first responsive design
-
-## 📁 File Structure
-
-### Core Pages
-
-1. **index.html** - Public Home Page (Before Login)
-   - Application introduction
-   - SDG 11 alignment messaging
-   - Login/Register call-to-action
-   - NO complaint data or registration button visible
-
-2. **register.html** - User Registration Page
-   - Complete signup form with all required fields
-   - Locality/ward selection
-   - Form validation ready
-
-3. **login.html** - User Login Page
-   - Email and password authentication
-   - Role auto-detection note
-   - Password recovery option
-
-4. **dashboard.html** - Authenticated Home Page (Locality Dashboard)
-   - Locality-level statistics (total, resolved, pending)
-   - Pie chart visualization (Chart.js)
-   - Conditional rendering with Django templates
-   - "Register Complaint" button (only when logged in)
-   - Recent activity feed
-
-5. **register-complaint.html** - Complaint Registration Form
-   - Issue type dropdown (Garbage/Pothole/Streetlight)
-   - Interactive map (Leaflet.js) for location selection
-   - Image upload with preview
-   - Character counter for description
-   - Auto-timestamp and status notes
-
-6. **complaints.html** - Complaint Listing Page
-   - Locality-wise complaint display
-   - Advanced filtering (status, type, SLA)
-   - Card-based layout with before/after images
-   - SLA status indicators
-   - Pagination support
-
-7. **profile.html** - User Profile Page
-   - User-specific complaint history
-   - Personal statistics
-   - Toggle between card and table view
-   - Account details display
-
-8. **admin-dashboard.html** - Ward Admin Dashboard
-   - Restricted to Admin users only
-   - SLA breach alerts
-   - Interactive complaint map
-   - Bulk complaint management
-   - Resolution modal with image upload
-   - Priority complaint sections
-
-### Components
-
-9. **navbar.html** - Reusable Navigation Component
-   - Conditional rendering for auth state
-   - User dropdown menu
-   - Admin panel link (for admins only)
-   - Mobile responsive hamburger menu
-
-10. **styles.css** - Complete Stylesheet
-    - CSS custom properties for theming
-    - Responsive grid layouts
-    - Component-based styling
-    - Print-friendly styles
-    - Animations and transitions
-
-## 🔧 Technical Features
-
-### Django Template Integration
-
-All pages use Django-style template tags:
-
-```django
-{% if user.is_authenticated %}
-  <!-- Authenticated content -->
-{% else %}
-  <!-- Public content -->
-{% endif %}
-
-{% for complaint in complaints %}
-  <!-- Loop content -->
-{% endfor %}
-
-{% csrf_token %}
-```
-
-### Conditional Rendering Examples
-
-**Dashboard Page:**
-```django
-{% if user.is_authenticated %}
-  <div class="dashboard-main">
-    <!-- Stats, charts, actions -->
-  </div>
-{% else %}
-  <div class="auth-required">
-    <!-- Login prompt -->
-  </div>
-{% endif %}
-```
-
-**Admin Dashboard:**
-```django
-{% if user.is_authenticated and user.role == 'Admin' %}
-  <!-- Admin tools -->
-{% else %}
-  <div class="access-denied">
-    <!-- Access restriction message -->
-  </div>
-{% endif %}
-```
-
-### External Libraries Used
-
-1. **Google Fonts**
-   - Bitter (serif, display)
-   - Work Sans (sans-serif, body)
-
-2. **Chart.js** (Dashboard)
-   - Pie/doughnut chart for status distribution
-   - CDN: `https://cdn.jsdelivr.net/npm/chart.js`
-
-3. **Leaflet.js** (Maps)
-   - Interactive location selection
-   - Complaint mapping
-   - CDN: `https://unpkg.com/leaflet@1.9.4/dist/leaflet.js`
-
-### Key CSS Custom Properties
-
-```css
-:root {
-  --primary-color: #1e5a3f;     /* Forest green */
-  --secondary-color: #d97706;    /* Amber */
-  --success-color: #2a9d4e;      /* Green */
-  --warning-color: #f59e0b;      /* Orange */
-  --danger-color: #dc2626;       /* Red */
-  --font-display: 'Bitter', serif;
-  --font-body: 'Work Sans', sans-serif;
-}
-```
-
-## 🔗 Django Backend Integration
-
-### Required URL Patterns
-
-```python
-# urls.py
-urlpatterns = [
-    path('', views.index, name='index'),
-    path('register/', views.register, name='register'),
-    path('login/', views.login_view, name='login'),
-    path('logout/', views.logout_view, name='logout'),
-    path('dashboard/', views.dashboard, name='dashboard'),
-    path('register-complaint/', views.register_complaint, name='register_complaint'),
-    path('complaints/', views.complaints_list, name='complaints'),
-    path('profile/', views.profile, name='profile'),
-    path('admin/', views.admin_dashboard, name='admin_dashboard'),
-    path('resolve-complaint/', views.resolve_complaint, name='resolve_complaint'),
-]
-```
-
-### Required Context Variables
-
-**Dashboard:**
-```python
-context = {
-    'user': request.user,
-    'total_complaints': int,
-    'resolved_complaints': int,
-    'pending_complaints': int,
-    'sla_breached': int,
-    'avg_resolution_time': str,
-    'active_reporters': int,
-    'recent_activities': QuerySet,
-}
-```
-
-**Complaints List:**
-```python
-context = {
-    'complaints': QuerySet,  # Paginated
-    # Each complaint object should have:
-    # - id, issue_type, description, status
-    # - created_at, resolved_at, landmark
-    # - before_image, after_image
-    # - sla_status, days_pending
-    # - user.name
-}
-```
-
-**Admin Dashboard:**
-```python
-context = {
-    'total_complaints': int,
-    'pending_complaints': int,
-    'resolved_complaints': int,
-    'sla_breached_count': int,
-    'resolution_rate': float,
-    'sla_breached_complaints': QuerySet,
-    'pending_complaints_list': QuerySet,
-    'complaints_json': str,  # JSON for map markers
-    'ward_center_lat': float,
-    'ward_center_lng': float,
-}
-```
-
-### Form Handling
-
-**Registration:**
-```python
-# Expected POST data
-{
-    'name': str,
-    'email': str,
-    'password': str,
-    'age': int,
-    'mobile': str (10 digits),
-    'locality': str,
-}
-```
-
-**Complaint Registration:**
-```python
-# Expected POST data
-{
-    'issue_type': str,  # 'garbage', 'pothole', 'streetlight'
-    'description': str,
-    'latitude': float,
-    'longitude': float,
-    'landmark': str (optional),
-    'before_image': File,
-}
-```
-
-**Complaint Resolution (Admin):**
-```python
-# Expected POST data
-{
-    'complaint_id': int,
-    'after_image': File,
-    'resolution_notes': str (optional),
-}
-```
-
-## 📱 Responsive Breakpoints
-
-- **Desktop**: 1200px+
-- **Tablet**: 768px - 1199px
-- **Mobile**: < 768px
-
-All layouts adapt gracefully across devices with:
-- Flexible grid systems
-- Collapsible navigation
-- Touch-friendly controls
-- Readable text at all sizes
-
-## 🎯 SLA (Service Level Agreement) Implementation
-
-The design includes SLA status indicators:
-
-**Issue Types & Timelines:**
-- Garbage: 24 hours
-- Pothole: 72 hours
-- Streetlight: 48 hours
-
-**Status Colors:**
-- Normal (green): Within SLA
-- Breached (red): Exceeded SLA
-
-Backend should calculate `days_pending` and set `sla_status` accordingly.
-
-## 🔐 Access Control Logic
-
-**Public Pages:**
-- index.html (always accessible)
-- login.html (always accessible)
-- register.html (always accessible)
-
-**Authenticated Pages:**
-- dashboard.html (requires login)
-- register-complaint.html (requires login)
-- complaints.html (requires login)
-- profile.html (requires login)
-
-**Admin-Only Pages:**
-- admin-dashboard.html (requires login + Admin role)
-
-## 🎨 Customization Guide
-
-### Changing Colors
-
-Edit CSS custom properties in `styles.css`:
-
-```css
-:root {
-  --primary-color: #YOUR_COLOR;
-  --secondary-color: #YOUR_COLOR;
-}
-```
-
-### Changing Fonts
-
-Replace Google Fonts link in HTML `<head>`:
-
-```html
-<link href="https://fonts.googleapis.com/css2?family=Your+Font&display=swap" rel="stylesheet">
-```
-
-Update CSS:
-
-```css
-:root {
-  --font-display: 'Your Font', serif;
-  --font-body: 'Your Font', sans-serif;
-}
-```
-
-### Adding New Status Types
-
-Update badge styles in CSS:
-
-```css
-.status-badge.your-status {
-    background-color: #color;
-    color: #text-color;
-}
-```
-
-## 📊 JavaScript Features
-
-### Chart Initialization (Dashboard)
-
-```javascript
-// Automatic Chart.js pie chart
-// Reads complaint data from Django context
-// Customizable colors and animations
-```
-
-### Interactive Map (Complaint Registration)
-
-```javascript
-// Leaflet.js map
-// Click to select location
-// Updates hidden lat/lng inputs
-// Marker placement
-```
-
-### File Upload Preview
-
-```javascript
-// Real-time image preview
-// Before uploading to server
-// Works for before_image and after_image
-```
-
-### Filtering System
-
-```javascript
-// Client-side filtering
-// Instant results
-// Multiple filter combinations
-```
-
-## 🚀 Deployment Checklist
-
-- [ ] Set up Django backend with required views
-- [ ] Configure media files for image uploads
-- [ ] Set up database models for User and Complaint
-- [ ] Implement authentication system
-- [ ] Configure email for password reset
-- [ ] Set up static files serving
-- [ ] Test all forms and validations
-- [ ] Configure map API keys if needed
-- [ ] Set up proper CSRF protection
-- [ ] Test responsive design on devices
-
-## 📝 Notes for Developers
-
-1. **Django Template Variables**: Replace placeholder values with actual backend data
-2. **URL Names**: Ensure URL names match your Django urls.py configuration
-3. **Media Files**: Configure MEDIA_ROOT and MEDIA_URL for image uploads
-4. **Security**: Implement proper authentication checks in views
-5. **Validation**: Add server-side validation for all forms
-6. **SLA Calculation**: Implement background task to check SLA compliance
-7. **Notifications**: Consider adding email/SMS notifications for status updates
-
-## 🎯 Key Features Implemented
-
-✅ Public home page without sensitive data  
-✅ Complete user registration and login  
-✅ Role-based access control (Citizen/Admin)  
-✅ Locality-based complaint dashboard  
-✅ Interactive map for location selection  
-✅ Image upload with preview  
-✅ SLA status indicators  
-✅ Admin-only resolution workflow  
-✅ Responsive design (mobile-first)  
-✅ Professional government aesthetic  
-✅ Accessibility considerations  
-✅ Print-friendly layouts  
-
-## 📧 Support
-
-For questions or customization requests, refer to the inline comments in each file. All major sections are clearly commented for easy understanding and modification.
+SmartCity Insight is a responsive, role-based web application designed to streamline urban issue reporting and resolution. Built with a strong civic-first design philosophy, the platform empowers citizens and administrators to collaboratively improve city infrastructure while aligning with **UN SDG 11: Sustainable Cities and Communities**.
 
 ---
 
-**Built for SDG 11: Sustainable Cities and Communities**  
-*Making cities inclusive, safe, resilient and sustainable*
+## 🌍 Purpose
+
+Cities don’t fail because problems don’t exist.  
+They fail because problems aren’t tracked, visualized, or resolved on time.
+
+SmartCity Insight fixes that.
+
+---
+
+## ✨ Key Highlights
+
+- Role-based access (Citizen / Admin)
+- Locality-wise complaint tracking
+- SLA-based accountability system
+- Interactive maps and data visualization
+- Mobile-first, government-grade UI
+- Built for transparency, not aesthetics alone
+
+---
+
+## 🎨 Design System
+
+**Visual Tone**: Civic, professional, accountable  
+
+**Typography**
+- Display: **Bitter** (serif)
+- Body: **Work Sans** (sans-serif)
+
+**Color Palette**
+```css
+:root {
+  --primary-color: #1e5a3f;   /* Forest Green */
+  --secondary-color: #d97706; /* Amber */
+  --success-color: #2a9d4e;
+  --warning-color: #f59e0b;
+  --danger-color: #dc2626;
+}
+````
+
+---
+
+## 📁 Project Structure
+```
+SmartCities_Insights/
+│
+├── SmartCities/          # Project
+│   ├── settings.py
+│   ├── urls.py
+│   ├── asgi.py
+│   └── wsgi.py
+│
+├── core/                 # App
+│   ├── migrations/
+│   ├── templates/
+│   │   ├── navbar.html
+│   │   ├── index.html
+│   │   ├── login.html
+│   │   ├── register.html
+│   │   ├── dashboard.html
+│   │   ├── complaints.html
+│   │   ├── complaint-detail.html
+│   │   ├── register-complaint.html
+│   │   ├── profile.html
+|   |   ├── admin-dashboard.html
+│   │   └── styles.css
+│   │
+|   ├── admin.py
+|   ├── app.py   
+│   ├── models.py
+│   ├── views.py
+│   ├── urls.py
+│   ├── forms.py
+│   └── admin.py
+│
+├── media/
+│   └── complaints/
+│       ├── before/
+│       └── after/
+|
+├── check_db.py
+├── db.sqlite3
+├── manage.py
+└── README.md
+```
+---
+
+## 📄 Pages & Access Levels (Actual File Mapping)
+
+### 🌐 Public Pages (No Login Required)
+
+* **`index.html`**
+  Landing page introducing SmartCity Insight.
+  No complaint data, no privileged actions.
+
+* **`login.html`**
+  User authentication page for citizens and admins.
+
+* **`register.html`**
+  Citizen registration page.
+
+---
+
+### 🔐 Authenticated Pages (Login Required)
+
+* **`dashboard.html`**
+  Locality-level dashboard showing complaint statistics, status distribution, and recent activity.
+
+* **`register-complaint.html`**
+  Complaint submission form with:
+
+  * Issue type selection
+  * Interactive map for location
+  * Image upload (before image)
+
+* **`complaints.html`**
+  Complaint listing page with filtering by status, issue type, and SLA condition.
+
+* **`complaint-detail.html`**
+  Detailed view of a single complaint including timeline, images, and status history.
+
+* **`profile.html`**
+  User profile page displaying personal complaint history and account details.
+
+* **`settings.html`**
+  User account settings and configuration page.
+
+---
+
+### 🛡️ Admin-Only Pages
+
+* **`admin-dashboard.html`**
+  Administrative control panel featuring:
+
+  * Pending and SLA-breached complaints
+  * Resolution workflow with image upload
+  * Ward-level monitoring and management tools
+
+---
+
+### 🧩 Shared Components
+
+* **`navbar.html`**
+  Reusable navigation component included across all pages.
+  Renders different options based on authentication state and user role.
+
+---
+
+### ⚠️ Note on Styles
+
+* **`styles.css`**
+  Currently located inside the `templates` directory.
+  This file should be moved to a proper static directory for correct Django usage.
+  
+---
+
+## 🔐 Access Control Logic
+
+```django
+{% if user.is_authenticated %}
+  <!-- Protected Content -->
+{% endif %}
+
+{% if user.is_authenticated and user.role == 'Admin' %}
+  <!-- Admin Tools -->
+{% endif %}
+```
+
+---
+
+## 🧠 SLA System
+
+| Issue Type  | SLA Time |
+| ----------- | -------- |
+| Garbage     | 24 hrs   |
+| Pothole     | 72 hrs   |
+| Streetlight | 48 hrs   |
+| Other       | 72 hrs   |
+
+**Status Indicators**
+
+* 🟢 Within SLA
+* 🔴 SLA Breached
+
+Backend calculates:
+
+* `hrs_pending`
+* `sla_status`
+* `avg_resolution_time`
+
+---
+
+## 🗺️ Tech Stack
+
+### Frontend
+
+* HTML5, CSS3
+* Vanilla JavaScript
+* Chart.js (Data Visualization)
+* Leaflet.js (Maps)
+
+### Backend (Expected)
+
+* Django
+* SQLite / PostgreSQL
+* Django Auth System
+
+---
+
+## 🔗 Django URL Configuration
+
+```python
+urlpatterns = [
+    path('', views.index, name='index'),
+    path('login/', views.login_view, name='login'),
+    path('register/', views.register_view, name='register'),
+    path('logout/', views.logout_view, name='logout'),
+    path('dashboard/', views.dashboard, name='dashboard'),
+    path('complaints/', views.complaints, name='complaints'),
+    path('complaint/<int:pk>/', views.complaint_detail, name='complaint_detail'),
+    path('profile/', views.profile, name='profile'),
+    path('register-complaint/', views.register_complaint, name='register_complaint'),
+    path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('resolve-complaint/', views.resolve_complaint, name='resolve_complaint'),
+    path('settings/', views.profile_settings, name='profile_settings'),
+]
+```
+---
+
+## 📦 Required Context Variables (Template-Aligned)
+
+These context variables are expected to be provided by Django views to properly render each template.
+
+---
+
+### 🏠 `dashboard.html`
+
+```python
+{
+  'total_complaints': int,
+  'resolved_complaints': int,
+  'pending_complaints': int,
+  'sla_breached': int,
+  'recent_activities': QuerySet,   # Recent complaints or status updates
+  'user': request.user
+}
+```
+
+Used for:
+
+* KPI cards
+* Status distribution charts
+* Recent activity feed
+
+---
+
+### 📋 `complaints.html`
+
+```python
+{
+  'complaints': QuerySet,           # Paginated list of complaints
+  'status_filter': str | None,
+  'issue_filter': str | None,
+  'sla_filter': str | None
+}
+```
+
+Each complaint object should expose:
+
+* `id`
+* `issue_type`
+* `description`
+* `status`
+* `created_at`
+* `days_pending`
+* `sla_status`
+* `before_image`
+* `after_image`
+
+---
+
+### 🔍 `complaint-detail.html`
+
+```python
+{
+  'complaint': Complaint,           # Single complaint instance
+  'timeline': list,                 # Status change history (optional)
+  'is_admin': bool
+}
+```
+
+Used for:
+
+* Full complaint lifecycle view
+* Image comparison (before / after)
+* Resolution notes
+
+---
+
+### 🧑 `profile.html`
+
+```python
+{
+  'user': request.user,
+  'user_complaints': QuerySet,
+  'total_reported': int,
+  'resolved_count': int,
+  'pending_count': int
+}
+```
+
+Used for:
+
+* Personal complaint statistics
+* User-specific history
+
+---
+
+### ⚙️ `settings.html`
+
+```python
+{
+  'user': request.user,
+  'profile_form': DjangoForm
+}
+```
+
+Used for:
+
+* Account updates
+* Profile configuration
+
+---
+
+### 🛡️ `admin-dashboard.html` (Admin Only)
+
+```python
+{
+  'total_complaints': int,
+  'pending_complaints': int,
+  'resolved_complaints': int,
+  'sla_breached_count': int,
+  'pending_complaints_list': QuerySet,
+  'sla_breached_complaints': QuerySet,
+  'complaints_json': str,            # Serialized for map markers
+  'ward_center_lat': float,
+  'ward_center_lng': float
+}
+```
+
+Used for:
+
+* Administrative monitoring
+* SLA enforcement
+* Complaint resolution workflow
+* Map visualization
+
+---
+
+### 🧭 Global (Used Across Templates)
+
+```python
+{
+  'user': request.user
+}
+```
+
+Available implicitly via Django’s request context.
+
+---
+
+## 📱 Responsive Breakpoints
+
+* Desktop: ≥1200px
+* Tablet: 768px – 1199px
+* Mobile: <768px
+
+---
+
+## 🚀 Deployment Checklist
+
+* Django auth configured
+* MEDIA_ROOT / MEDIA_URL set
+* CSRF protection enabled
+* Image uploads tested
+* SLA logic implemented
+* Admin access restricted
+* Responsive testing done
+
+---
+
+## 🎯 Project Significance
+
+SmartCity Insight models a real-world urban grievance system rather than a generic CRUD application.
+
+The project demonstrates:
+- Domain-driven problem modeling for civic infrastructure
+- Role-based access control (Citizen vs Admin)
+- SLA-backed accountability and status tracking
+- Data visualization for operational transparency
+- A scalable UI structure aligned with real municipal workflows
+
+This makes the project suitable for:
+- Academic evaluation and final-year submissions
+- Resume and portfolio demonstrations
+- Smart city and civic-tech concept demos
+
+
+---
+
+## 🌱 SDG Alignment
+
+**UN Sustainable Development Goal 11 – Sustainable Cities and Communities**
+
+SmartCity Insight aligns with SDG 11 by providing a structured digital system for reporting, tracking, and resolving urban infrastructure issues at the locality level.
+
+The platform supports this goal through:
+- Transparent complaint reporting and tracking
+- SLA-based accountability for civic issue resolution
+- Data-driven visibility into urban service performance
+- Role-based participation by citizens and administrators
+
+Rather than treating sustainability as a concept, the system operationalizes it through measurable workflows and outcomes.
+
+### All rights reserved © 2026 SmartCity Insight/BhavyaSoni21
