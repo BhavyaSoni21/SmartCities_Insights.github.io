@@ -24,13 +24,12 @@
                     <p class="page-subtitle">{{ user.locality }} - Complaint Management</p>
                 </div>
                 <div class="admin-badge">
-                    <span class="badge-icon">🛡️</span>
+                    <span class="badge-icon"></span>
                     <span>Locality Representative</span>
                 </div>
             </div>
         </header>
 
-        <!-- Alert Banner for SLA Breaches -->
         {% if sla_breached_count > 0 %}
         <div class="alert-banner critical">
             <div class="alert-icon">⚠️</div>
@@ -42,7 +41,6 @@
         </div>
         {% endif %}
 
-        <!-- Admin Statistics -->
         <section class="admin-stats">
             <div class="stats-grid">
                 <div class="admin-stat-card total">
@@ -83,7 +81,6 @@
             </div>
         </section>
 
-        <!-- Map View -->
         <section class="map-section">
             <h2 class="section-title">Locality Complaint Map</h2>
             <div id="adminMap" class="admin-map"></div>
@@ -103,7 +100,6 @@
             </div>
         </section>
 
-        <!-- SLA Breached Complaints - Priority Section -->
         <section class="priority-section" id="sla-breached-section">
             <div class="section-header">
                 <h2 class="section-title critical">🚨 SLA Breached - Urgent Action Required</h2>
@@ -168,7 +164,6 @@
             </div>
         </section>
 
-        <!-- All Pending Complaints -->
         <section class="pending-section">
             <div class="section-header">
                 <h2 class="section-title">Pending Complaints</h2>
@@ -229,7 +224,6 @@
         </section>
     </div>
 
-    <!-- Resolution Modal -->
     <div id="resolveModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -283,14 +277,22 @@
     </div>
 
     <script>
-        // Initialize map
-        const adminMap = L.map('adminMap').setView([{{ ward_center_lat|default:"19.0760" }}, {{ ward_center_lng|default:"72.8777" }}], 14);
+        const adminMap = L.map('adminMap', {
+            tap: true,
+            touchZoom: true,
+            dragging: true,
+            scrollWheelZoom: false,
+            tapTolerance: 15
+        }).setView([{{ ward_center_lat|default:"19.0760" }}, {{ ward_center_lng|default:"72.8777" }}], 14);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
         }).addTo(adminMap);
 
-        // Add markers for all complaints
+        setTimeout(() => {
+            adminMap.invalidateSize();
+        }, 100);
+
         const complaints = {{ complaints_json|safe }};
         complaints.forEach(complaint => {
             const markerColor = complaint.sla_status === 'breached' ? 'red' : 
@@ -311,7 +313,6 @@
               `);
         });
 
-        // Modal functions
         function openResolveModal(complaintId) {
             document.getElementById('complaintId').value = complaintId;
             document.getElementById('resolveModal').style.display = 'flex';
@@ -323,7 +324,6 @@
             document.querySelector('.upload-placeholder').style.display = 'flex';
         }
 
-        // Image preview
         document.getElementById('afterImage').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
@@ -340,7 +340,6 @@
     </script>
 
     {% else %}
-    <!-- Access Denied for Non-Admin Users -->
     <div class="access-denied">
         <div class="denied-icon">🚫</div>
         <h2>Access Restricted</h2>

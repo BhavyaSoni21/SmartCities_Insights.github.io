@@ -354,7 +354,6 @@ def login_view(request: HttpRequest) -> HttpResponse:
                 if created:
                     user.set_password(password)
                     user.save()
-                    # Create profile
                     UserProfile.objects.get_or_create(
                         user=user,
                         defaults={
@@ -375,7 +374,7 @@ def login_view(request: HttpRequest) -> HttpResponse:
                 auth_login(request, user)
                 _attach_profile_attrs(request)
                 messages.success(request, 'Logged in successfully.')
-                return redirect('admin_dashboard') 
+                return redirect('admin_dashboard')
             except Exception as e:
                 messages.error(request, f'Database error. Please register a new account or check database permissions.')
                 return render(request, 'login.html', {})
@@ -403,7 +402,7 @@ def register_view(request: HttpRequest) -> HttpResponse:
         name = (request.POST.get('name') or '').strip()
         mobile = (request.POST.get('mobile') or '').strip()
         age_raw = (request.POST.get('age') or '').strip()
-        locality = (request.POST.get('locality') or '').strip()
+        locality_value = (request.POST.get('locality') or '').strip()
 
         if not email or not password:
             messages.error(request, 'Email and password are required.')
@@ -413,13 +412,20 @@ def register_view(request: HttpRequest) -> HttpResponse:
             messages.error(request, 'An account with this email already exists. Please log in.')
             return redirect('login')
 
+        locality = ''
+        ward_number = ''
+        if locality_value and '|' in locality_value:
+            locality, ward_number = locality_value.split('|')
+        else:
+            locality = locality_value
+
         user = User.objects.create_user(username=email, email=email, password=password)
         profile = UserProfile.objects.create(
             user=user,
             name=name or email,
             role='Citizen',
             locality=locality,
-            ward_number='',
+            ward_number=ward_number,
             mobile=mobile,
             age=int(age_raw) if age_raw.isdigit() else None,
         )
@@ -436,6 +442,7 @@ def logout_view(request: HttpRequest) -> HttpResponse:
 
 @login_required
 def profile_settings(request):
+    _attach_profile_attrs(request)
     user = request.user
     profile = user.profile
 
@@ -445,12 +452,29 @@ def profile_settings(request):
 
         if user_form.is_valid() and profile_form.is_valid():
             user_form.save()
-            profile_form.save()
+            
+            locality_value = request.POST.get('locality', '')
+            if locality_value and '|' in locality_value:
+                locality_name, ward_number = locality_value.split('|')
+                profile.locality = locality_name
+                profile.ward_number = ward_number
+            else:
+                profile.locality = locality_value
+            
+            profile.name = profile_form.cleaned_data.get('name')
+            profile.mobile = profile_form.cleaned_data.get('mobile')
+            profile.age = profile_form.cleaned_data.get('age')
+            profile.save()
+            
+            messages.success(request, 'Your profile settings have been updated successfully!')
             return redirect('profile_settings')
+        else:
+            messages.error(request, 'Please correct the errors below.')
 
     else:
         user_form = UserForm(instance=user)
-        profile_form = ProfileForm(instance=profile)
+        initial_locality = f"{profile.locality}|{profile.ward_number}" if profile.locality and profile.ward_number else profile.locality
+        profile_form = ProfileForm(instance=profile, initial={'locality': initial_locality})
 
     return render(request, 'settings.html', {   
         'user_form': user_form,

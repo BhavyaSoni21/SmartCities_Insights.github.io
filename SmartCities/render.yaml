@@ -1,0 +1,24 @@
+services:
+  # Web Service
+  - type: web
+    name: smartcities
+    runtime: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn SmartCities.wsgi:application"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.0
+      - key: DEBUG
+        value: False
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: smartcities-db
+          property: connectionString
+
+  # PostgreSQL Database
+  - type: pgsql
+    name: SmartCities_Insights
+    databaseName: smartcities_insights
+    user: smartcities_insights_user

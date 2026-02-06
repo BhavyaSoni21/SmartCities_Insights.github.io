@@ -264,7 +264,9 @@
         const typeFilter = document.getElementById('typeFilter')?.value || 'all';
         const slaFilter = document.getElementById('slaFilter')?.value || 'all';
 
-        const cards = document.querySelectorAll('.complaint-card');
+        const complaintsList = document.querySelector('.complaints-list');
+        const cards = Array.from(document.querySelectorAll('.complaint-card'));
+        let visibleCards = [];
 
         cards.forEach(card => {
             const status = card.dataset.status;
@@ -278,14 +280,48 @@
                 typeFilter === 'all' || type === typeFilter;
 
             const matchSLA =
-                slaFilter === 'all' ||
-                (slaFilter === 'active' && sla === 'active') ||
-                (slaFilter === 'breached' && sla === 'breached') ||
-                (slaFilter === 'resolved' && sla === 'resolved');
+                slaFilter === 'all' || sla === slaFilter;
 
-            card.style.display =
-                matchStatus && matchType && matchSLA ? 'block' : 'none';
+            if (matchStatus && matchType && matchSLA) {
+                card.style.display = 'block';
+                visibleCards.push(card);
+            } else {
+                card.style.display = 'none';
+            }
         });
+
+        sortComplaints(visibleCards);
+    }
+
+    function sortComplaints(cards = null) {
+        const sortFilter = document.getElementById('sortFilter')?.value || 'recent';
+        const complaintsList = document.querySelector('.complaints-list');
+        
+        if (!cards) {
+            cards = Array.from(document.querySelectorAll('.complaint-card')).filter(
+                card => card.style.display !== 'none'
+            );
+        }
+
+        cards.sort((a, b) => {
+            if (sortFilter === 'recent') {
+                const dateA = new Date(a.querySelector('.complaint-timestamp').textContent.trim());
+                const dateB = new Date(b.querySelector('.complaint-timestamp').textContent.trim());
+                return dateB - dateA;
+            } else if (sortFilter === 'oldest') {
+                const dateA = new Date(a.querySelector('.complaint-timestamp').textContent.trim());
+                const dateB = new Date(b.querySelector('.complaint-timestamp').textContent.trim());
+                return dateA - dateB;
+            } else if (sortFilter === 'sla_breach') {
+                const slaA = a.dataset.sla === 'breached' ? 0 : 1;
+                const slaB = b.dataset.sla === 'breached' ? 0 : 1;
+                return slaA - slaB;
+            }
+            return 0;
+        });
+
+        const emptyState = complaintsList.querySelector('.empty-state');
+        cards.forEach(card => complaintsList.insertBefore(card, emptyState));
     }
 
     function resetFilters() {
@@ -306,6 +342,7 @@
         const statusFilter = document.getElementById('statusFilter');
         const typeFilter = document.getElementById('typeFilter');
         const slaFilter = document.getElementById('slaFilter');
+        const sortFilter = document.getElementById('sortFilter');
 
         if (statusFilter)
             statusFilter.addEventListener('change', filterComplaints);
@@ -315,6 +352,9 @@
 
         if (slaFilter)
             slaFilter.addEventListener('change', filterComplaints);
+
+        if (sortFilter)
+            sortFilter.addEventListener('change', () => sortComplaints());
     });
 </script>
 <div class="background-pattern"></div>
