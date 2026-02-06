@@ -1,10 +1,10 @@
 # SmartCity Insight - Urban Issue Management System
 
-## 📋 Overview
+## Overview
 
 **SmartCity Insight** is a full-stack web application for urban issue management aligned with **SDG 11** (Sustainable Cities and Communities). This platform bridges the gap between citizens and municipal administration, enabling transparent, accountable, and efficient resolution of urban infrastructure issues.
 
-### 🎯 Key Highlights
+### Key Highlights
 - **Role-Based System**: Separate interfaces for Citizens and Administrators
 - **SLA-Driven**: Automated Service Level Agreement tracking (24-72 hours based on issue type)
 - **Geo-Located Complaints**: Interactive map integration for precise location marking
@@ -12,11 +12,11 @@
 - **Image Proof**: Before/after image upload capability
 - **Responsive Design**: Mobile-first approach with civic/government aesthetic
 
-## 🚀 Quick Start Guide (For Beginners)
+## Quick Start Guide (For Beginners)
 
 This guide will help you set up the SmartCity Insight application on your computer, even if you have no programming experience. Just follow these steps carefully!
 
-### 📋 What You'll Need
+### What You'll Need
 
 Before we begin, let's make sure you have everything installed:
 
@@ -44,7 +44,7 @@ Before we begin, let's make sure you have everything installed:
 
 ---
 
-### 📥 Step-by-Step Installation
+### Step-by-Step Installation
 
 #### **Step 1: Download the Project Files**
 
@@ -174,11 +174,11 @@ Starting development server at http://127.0.0.1:8000/
 2. Type this in the address bar: `http://127.0.0.1:8000/`
 3. Press Enter
 
-**🎉 Congratulations!** You should now see the SmartCity Insight home page!
+**Congratulations!** You should now see the SmartCity Insight home page!
 
 ---
 
-### 🔐 Login Credentials
+### Login Credentials
 
 After running `create_demo_account`, you'll see:
 - **Citizen Account**: Email and password will be shown in the terminal
@@ -188,7 +188,7 @@ After running `create_demo_account`, you'll see:
 
 ---
 
-### 🛑 How to Stop the Application
+### How to Stop the Application
 
 When you're done testing:
 1. Go back to the Command Prompt/Terminal window
@@ -199,7 +199,7 @@ To close the virtual environment, type: `deactivate`
 
 ---
 
-### 🔄 How to Start It Again Later
+### How to Start It Again Later
 
 When you come back to work on the project:
 
@@ -210,7 +210,7 @@ When you come back to work on the project:
 
 ---
 
-### ⚠️ Common Problems & Solutions
+### Common Problems & Solutions
 
 #### **Problem 1: "python is not recognized as a command"**
 **Solution:**
@@ -251,7 +251,7 @@ When you come back to work on the project:
 
 ---
 
-### 📞 Need More Help?
+### Need More Help?
 
 If you're stuck:
 1. Read the error message carefully - it often tells you what's wrong
@@ -262,7 +262,7 @@ If you're stuck:
 
 ---
 
-### ✅ Quick Checklist
+### Quick Checklist
 
 Before asking for help, verify:
 - [ ] Python 3.10+ is installed
@@ -273,7 +273,7 @@ Before asking for help, verify:
 - [ ] The server is running (you see "Starting development server")
 - [ ] You're using the correct URL: `http://127.0.0.1:8000/`
 
-## 💻 Tech Stack
+## Tech Stack
 
 ### Backend
 - **Framework**: Django 5.2
@@ -297,7 +297,7 @@ Before asking for help, verify:
 - **Design**: Mobile-first, responsive
 - **Theme**: Civic/government aesthetic
 
-## 🎨 Design Philosophy
+## Design Philosophy
 
 The interface features a **civic/government aesthetic** with:
 - Professional, trustworthy appearance
@@ -307,7 +307,7 @@ The interface features a **civic/government aesthetic** with:
 - Transparent data visualization
 - Mobile-first responsive design
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 SmartCities_Insights_Trash/
@@ -361,7 +361,7 @@ SmartCities_Insights_Trash/
 └── README.md                       # This file
 ```
 
-## 🔧 Core Features
+## Core Features
 
 ### For Citizens
 
@@ -431,7 +431,7 @@ SmartCities_Insights_Trash/
     - Print-friendly styles
     - Animations and transitions
 
-## 🔧 Technical Features
+## Technical Features
 
 ### Django Template Integration
 
@@ -506,7 +506,7 @@ All pages use Django-style template tags:
 }
 ```
 
-## 🔗 Django Backend Integration
+## Django Backend Integration
 
 ### Required URL Patterns
 
@@ -609,7 +609,7 @@ context = {
 }
 ```
 
-## 📱 Responsive Breakpoints
+## Responsive Breakpoints
 
 - **Desktop**: 1200px+
 - **Tablet**: 768px - 1199px
@@ -621,7 +621,7 @@ All layouts adapt gracefully across devices with:
 - Touch-friendly controls
 - Readable text at all sizes
 
-## 🎯 SLA (Service Level Agreement) Implementation
+## SLA (Service Level Agreement) Implementation
 
 The design includes SLA status indicators:
 
@@ -636,7 +636,7 @@ The design includes SLA status indicators:
 
 Backend should calculate `days_pending` and set `sla_status` accordingly.
 
-## 🔐 Access Control Logic
+## Access Control Logic
 
 **Public Pages:**
 - index.html (always accessible)
@@ -652,7 +652,7 @@ Backend should calculate `days_pending` and set `sla_status` accordingly.
 **Admin-Only Pages:**
 - admin-dashboard.html (requires login + Admin role)
 
-## 🎨 Customization Guide
+## Customization Guide
 
 ### Changing Colors
 
@@ -693,7 +693,7 @@ Update badge styles in CSS:
 }
 ```
 
-## 📊 JavaScript Features
+## JavaScript Features
 
 ### Chart Initialization (Dashboard)
 
@@ -728,7 +728,7 @@ Update badge styles in CSS:
 // Multiple filter combinations
 ```
 
-## ✅ Verification Checklist
+## Verification Checklist
 
 After following the installation steps above, verify everything is working:
 
@@ -767,7 +767,7 @@ After following the installation steps above, verify everything is working:
 
 ---
 
-## 🚀 What to Do Next
+## What to Do Next
 
 Once your application is running successfully:
 
@@ -791,7 +791,7 @@ Once your application is running successfully:
 
 ---
 
-## 🎨 Simple Customization Guide
+## Simple Customization Guide
 
 ### Change the Application Name
 1. Open `SmartCities/core/templates/navbar.html`
@@ -815,7 +815,7 @@ Once your application is running successfully:
 
 ---
 
-## 🛠️ Useful Commands Reference
+## Useful Commands Reference
 
 Keep these commands handy for managing the application:
 
@@ -869,7 +869,7 @@ python manage.py help
 python manage.py help <command_name>
 ```
 
-## 🌍 Advanced Configuration (Optional)
+## Advanced Configuration (Optional)
 
 ### Environment Variables
 
@@ -909,7 +909,7 @@ DATABASE_NAME=db.sqlite3
 - `DATABASE_ENGINE`: What type of database to use (SQLite is simplest)
 - `DATABASE_NAME`: Name of your database file
 
-## 📊 Analytics & Metrics
+## Analytics & Metrics
 
 The system tracks:
 - **Complaint Volume**: Total, resolved, pending counts
@@ -919,7 +919,7 @@ The system tracks:
 - **Issue Distribution**: By type (garbage/pothole/streetlight)
 - **Geographic Patterns**: Complaint clustering by location
 
-## 🔄 Workflows
+## Workflows
 
 ### Citizen Workflow
 ```
@@ -935,7 +935,7 @@ Select Complaint → Upload After Image →
 Mark as Resolved → Monitor Analytics
 ```
 
-## 🎯 Key Features Implemented
+## Key Features Implemented
 
 ✅ Public home page with SDG 11 alignment  
 ✅ Complete user registration and authentication  
@@ -951,7 +951,7 @@ Mark as Resolved → Monitor Analytics
 ✅ Environment variable security  
 ✅ Virtual environment isolation  
 
-## 🚧 Future Enhancements
+## Future Enhancements
 
 ### Phase 1 (Short-term)
 - [ ] Email notifications on status change
@@ -977,7 +977,7 @@ Mark as Resolved → Monitor Analytics
 - [ ] IoT sensor integration
 - [ ] Mobile app for field workers
 
-## 📈 SDG 11 Alignment
+## SDG 11 Alignment
 
 This project contributes to **Sustainable Development Goal 11**:
 
@@ -992,7 +992,7 @@ This project contributes to **Sustainable Development Goal 11**:
 - **Efficiency**: Data-driven resource allocation by administrators
 - **Sustainability**: Proactive maintenance prevents major issues
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
@@ -1007,18 +1007,18 @@ This project contributes to **Sustainable Development Goal 11**:
 - Write unit tests for new features
 - Update README for significant changes
 
-## 📝 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 📧 Support & Contact
+## Support & Contact
 
 For questions, issues, or feature requests:
 - **Issues**: Create a GitHub issue
 - **Documentation**: Refer to inline code comments
 - **Email**: [Your contact email]
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Django Framework for robust backend
 - Leaflet.js for mapping capabilities
