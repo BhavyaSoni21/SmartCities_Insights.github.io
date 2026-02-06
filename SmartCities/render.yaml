@@ -4,7 +4,7 @@ services:
     name: smartcities
     runtime: python
     buildCommand: "./build.sh"
-    startCommand: "gunicorn SmartCities.wsgi:application"
+    startCommand: "gunicorn SmartCities.wsgi:application --bind 0.0.0.0:$PORT"
     envVars:
       - key: PYTHON_VERSION
         value: 3.10.0
@@ -14,7 +14,7 @@ services:
         generateValue: true
       - key: DATABASE_URL
         fromDatabase:
-          name: smartcities-db
+          name: SmartCities_Insights
           property: connectionString
 
   # PostgreSQL Database
